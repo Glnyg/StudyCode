@@ -1,0 +1,47 @@
+# 权威设计包索引
+
+## 这是什么
+- 这是整个项目的学习入口。
+- `docs/` 是正式设计真源。
+- `Obsidian/` 是面向你学习和复习的教学镜像。
+
+## 你先记住
+- 这是一个基于 [[.NET 10 LTS]]、[[ASP.NET Core]]、[[微服务]]、[[多租户]] 的生产级客服系统。
+- 业务真相在 [[PostgreSQL]]，聊天搜索读侧在 [[OpenSearch]]，实时推送靠 [[SignalR]]，异步事件靠 [[RabbitMQ]]。
+- AI 不是自由发挥，它必须受 [[策略引擎]]、[[审计]]、[[租户隔离]] 和受控工具约束。
+
+## 你应该怎么学
+1. 先看 [[如何学习这个项目]]，建立总路线。
+2. 再看 [[术语总索引]]，把陌生词先打通。
+3. 然后按顺序读：
+   - [[系统总览学习笔记]]
+   - [[开工前设计冻结清单]]
+   - [[Codex 工作树工作流]]
+   - [[服务边界与运行时拓扑]]
+   - [[高风险关键词告警与紧急介入]]
+   - [[数据职责与保留策略]]
+   - [[聊天记录搜索]]
+   - [[AI 服务设计]]
+   - [[断电恢复与自动恢复]]
+   - [[实现风格：Pragmatic DDD 与 Workflow-first]]
+   - [[K8s 平台基线]]
+4. 最后看 [[工作与面试表达手册]]，把知识变成输出能力。
+
+## 为什么这样学
+- 你不是只要“看懂”，而是要能把这些设计真正用于生产、工作沟通、代码实现和面试表达。
+- 所以每篇核心笔记都会回答 5 个问题：
+  - 这是什么
+  - 为什么要这样设计
+  - 在本项目里怎么用
+  - 工作里怎么落地
+  - 面试里怎么讲
+
+## 正式规范入口
+- `docs/README.md`
+- `docs/architecture/system-overview.md`
+- `docs/architecture/implementation-readiness-and-design-freeze.md`
+- `docs/domain/urgent-intervention-and-management-alerting.md`
+- `docs/platform/codex-worktree-workflow.md`
+- `docs/search/chat-history-search.md`
+- `docs/ai/ai-service-design.md`
+- `docs/platform/k8s-baseline.md`
