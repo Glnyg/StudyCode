@@ -25,4 +25,4 @@
 
 ## 读完去哪里
 - 想按顺序学：[[00-Overview/如何学习这个项目|如何学习这个项目]]
-- 想回总入口：[[Obsidian/README|Obsidian 学习入口]]
+- 想回总入口：[Obsidian 学习入口](../README.md)

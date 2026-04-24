@@ -19,5 +19,5 @@
 - `docs/adr/`
 
 ## 读完去哪里
-- 想回正式设计入口：[[Obsidian/README|Obsidian 学习入口]]
+- 想回正式设计入口：[Obsidian 学习入口](../README.md)
 - 想看现行系统说明：[[01-Architecture/README|01-Architecture]]

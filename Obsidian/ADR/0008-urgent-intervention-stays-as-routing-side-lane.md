@@ -1,5 +1,7 @@
 # ADR 0008：高风险紧急介入保持为路由侧旁路能力
 
+对应正式文档：`docs/adr/0008-urgent-intervention-stays-as-routing-side-lane.md`
+
 ## 背景
 - 系统后续需要支持重点词触发，比如“投诉”“12315”。
 - 一旦命中，要通知企微、飞书等管理渠道介入。
