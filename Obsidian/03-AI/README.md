@@ -18,5 +18,6 @@
 
 ## 读完去哪里
 - 想回头看系统边界：[[01-Architecture/README|01-Architecture]]
-- 想看业务真相和搜索读侧：[[02-Domain/README|02-Domain]]
+- 想看业务真相和搜索读侧：[[06-Search/README|06-Search]]
+- 想看验证要求：[[09-Testing/README|09-Testing]]
 - 想补 AI 术语：[[90-Glossary/README|90-Glossary]]

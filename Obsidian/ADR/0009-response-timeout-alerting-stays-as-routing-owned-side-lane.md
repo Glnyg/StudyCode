@@ -1,5 +1,7 @@
 # ADR 0009：客服未回复超时告警保持为路由侧旁路能力
 
+对应正式文档：`docs/adr/0009-response-timeout-alerting-stays-as-routing-owned-side-lane.md`
+
 ## 背景
 - 系统需要支持“客户已经进入人工接待，但超过配置时间还没有收到人工回复”的内部提醒。
 - 这类提醒要发到企微、飞书等管理渠道，必要时还要补设备信息。

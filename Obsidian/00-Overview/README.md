@@ -9,7 +9,7 @@
 - 这一层也决定你和 AI 代理怎么安全协作，什么时候能开工，什么时候必须先补设计。
 
 ## 建议先读
-1. [[authority-package|权威设计包索引]]
+1. [[权威设计包索引]]
 2. [[如何学习这个项目]]
 3. [[术语总索引]]
 4. [[开工前设计冻结清单]]
@@ -20,8 +20,10 @@
 - `docs/architecture/implementation-readiness-and-design-freeze.md`
 - `docs/platform/codex-worktree-workflow.md`
 - `docs/testing/verification-baseline.md`
+- `docs/testing/test-strategy-and-quality-gates.md`
 
 ## 读完去哪里
 - 想看系统全貌：[[01-Architecture/README|01-Architecture]]
+- 想看测试要求：[[09-Testing/README|09-Testing]]
 - 想先补词汇：[[90-Glossary/README|90-Glossary]]
 - 想按图走主路线：[[如何学习这个项目]]
