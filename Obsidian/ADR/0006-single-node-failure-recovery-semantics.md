@@ -4,4 +4,4 @@
 
 - 单服务或单节点故障后，已确认的消息不能丢。
 - K8s 负责拉起服务，不负责业务真相。
-- 关键依赖是 PostgreSQL 真源、Outbox、RabbitMQ 持久化、幂等消费和客户端 replay。
+- 关键依赖是 [[PostgreSQL]] 真源、Outbox、[[RabbitMQ]] 持久化、[[幂等|幂等消费]] 和客户端 replay。
