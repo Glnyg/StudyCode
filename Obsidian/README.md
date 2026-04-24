@@ -19,7 +19,7 @@
 - [[05-API/README|05-API]]：公共接口、事件契约与共享字段。
 - [[06-Search/README|06-Search]]：聊天记录搜索与 [[OpenSearch]] 读侧。
 - [[07-Platform/README|07-Platform]]：[[Kubernetes]] 平台基线与集群分层。
-- [[08-Reliability/README|08-Reliability]]：[[恢复语义]]、重放、幂等与断电恢复。
+- [[08-Reliability/README|08-Reliability]]：[[恢复语义]]、重放、[[幂等]] 与断电恢复。
 - [[09-Testing/README|09-Testing]]：验证基线与质量闸门。
 - [[90-Glossary/README|90-Glossary]]：术语补课入口。
 - [[ADR/README|ADR]]：冻结决策与变更边界。

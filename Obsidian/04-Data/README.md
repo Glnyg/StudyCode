@@ -16,5 +16,5 @@
 
 ## 读完去哪里
 - 想看搜索读侧：[[06-Search/README|06-Search]]
-- 想看恢复语义：[[08-Reliability/README|08-Reliability]]
+- 想看 [[恢复语义]]：[[08-Reliability/README|08-Reliability]]
 - 想补数据术语：[[90-Glossary/README|90-Glossary]]
