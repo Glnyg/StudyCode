@@ -25,7 +25,6 @@
 - `reliability/power-loss-and-recovery.md`: recovery semantics, no-loss guarantees, replay rules, and single-node failure behavior.
 - `api/public-contracts-and-events.md`: public HTTP/gRPC contracts, event envelope, and shared types.
 - `platform/k8s-baseline.md`: Kubernetes baseline, observability, and delivery rules.
-- `platform/codex-worktree-workflow.md`: executable repository workflow for Codex worktrees, branch creation, and merge-back handling.
 - `testing/verification-baseline.md`: acceptance checks, failure drills, and performance targets.
 - `testing/test-strategy-and-quality-gates.md`: mandatory test layers, quality gates, and what “tests have guarantees” means in this repo.
 - `adr/`: frozen architectural decisions that future changes must amend instead of overriding silently.

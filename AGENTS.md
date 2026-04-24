@@ -15,13 +15,8 @@
 - If a formal term is reused across notes and does not have a stable wikilink target yet, add or update the matching glossary/topic note in the same change. Do not force wikilinks inside code blocks, JSON, Mermaid syntax labels, file paths, or negative/hypothetical examples.
 - Core Obsidian notes should explain: what it is, why it matters, how this project uses it, how to apply it in production/work, how to explain it in interviews, and what to study next.
 
-## Codex Git Workflow
-- When working inside a Codex `git worktree`, check `git branch --show-current` before substantial edits.
-- If the worktree is in detached `HEAD`, create a task branch first with `powershell -File scripts/codex/start-worktree-task.ps1 -TaskName "<task-name>"`.
-- Default task branch pattern is `codex/<task-slug>`.
-- Prefer `powershell -File scripts/codex/finish-worktree-task.ps1 -CommitMessage "<message>"` to finalize worktree changes, and add `-Merge` when the user wants the branch merged back into the primary `main` worktree.
-- Merge back through the primary `main` worktree instead of trying to switch a detached Codex worktree onto `main`.
-- Do not stage or commit `.codex/`, `.idea/`, `.vs/`, or other local-only tool state.
+## Git Safety
+- Before substantial edits, confirm branch state, create a named branch if the worktree is detached, merge through the primary worktree, and never commit local-only tool state such as `.codex/`, `.idea/`, or `.vs/`.
 
 ## Default Working Loop
 1. Understand the request, constraints, and affected areas.
