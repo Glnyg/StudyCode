@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://customerservice.local/docs/api/contract-package-v1/schemas/asset-ai-events.schema.json",
+  "title": "Asset And AI Events",
+  "examples": [
+    {
+      "event_id": "evt-tool-001",
+      "event_type": "LowRiskToolExecuted",
+      "tenant_id": "tenant-a",
+      "occurred_at": "2026-04-24T09:12:11Z",
+      "correlation_id": "corr-002",
+      "producer": "ai-service",
+      "payload_version": 1,
+      "payload": {
+        "audit_id": "audit-001",
+        "conversation_id": "conv-1001",
+        "tool_name": "GetDeviceSnapshot",
+        "execution_mode": "ReadOnly",
+        "idempotency_key": "idem-tool-001",
+        "result_status": "succeeded",
+        "executed_at": "2026-04-24T09:12:11Z"
+      }
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/AssetSent"
+    },
+    {
+      "$ref": "#/$defs/VideoEscalatedToHuman"
+    },
+    {
+      "$ref": "#/$defs/KnowledgeReleasePublished"
+    },
+    {
+      "$ref": "#/$defs/LowRiskToolExecuted"
+    }
+  ],
+  "$defs": {
+    "EnvelopeBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_type",
+        "tenant_id",
+        "occurred_at",
+        "correlation_id",
+        "producer",
+        "payload_version",
+        "payload"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string"
+        },
+        "event_type": {
+          "type": "string"
+        },
+        "tenant_id": {
+          "type": "string"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "correlation_id": {
+          "type": "string"
+        },
+        "producer": {
+          "type": "string",
+          "enum": [
+            "media-service",
+            "ai-service",
+            "knowledge-service"
+          ]
+        },
+        "payload_version": {
+          "const": 1
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    },
+    "AssetSent": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "AssetSent"
+            },
+            "producer": {
+              "const": "media-service"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "conversation_id",
+                "message_id",
+                "asset_id",
+                "asset_type",
+                "channel",
+                "sent_at"
+              ],
+              "properties": {
+                "conversation_id": {
+                  "type": "string"
+                },
+                "message_id": {
+                  "type": "string"
+                },
+                "asset_id": {
+                  "type": "string"
+                },
+                "asset_type": {
+                  "type": "string"
+                },
+                "channel": {
+                  "type": "string"
+                },
+                "sent_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "VideoEscalatedToHuman": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "VideoEscalatedToHuman"
+            },
+            "producer": {
+              "const": "ai-service"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "conversation_id",
+                "message_id",
+                "handoff_reason",
+                "escalated_at"
+              ],
+              "properties": {
+                "conversation_id": {
+                  "type": "string"
+                },
+                "message_id": {
+                  "type": "string"
+                },
+                "handoff_reason": {
+                  "const": "video_not_supported_in_v1"
+                },
+                "escalated_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "KnowledgeReleasePublished": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "KnowledgeReleasePublished"
+            },
+            "producer": {
+              "const": "knowledge-service"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "knowledge_base_id",
+                "release_id",
+                "published_at"
+              ],
+              "properties": {
+                "knowledge_base_id": {
+                  "type": "string"
+                },
+                "release_id": {
+                  "type": "string"
+                },
+                "published_by": {
+                  "type": "string"
+                },
+                "published_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "LowRiskToolExecuted": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "LowRiskToolExecuted"
+            },
+            "producer": {
+              "const": "ai-service"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "audit_id",
+                "conversation_id",
+                "tool_name",
+                "execution_mode",
+                "result_status",
+                "executed_at"
+              ],
+              "properties": {
+                "audit_id": {
+                  "type": "string"
+                },
+                "conversation_id": {
+                  "type": "string"
+                },
+                "tool_name": {
+                  "type": "string"
+                },
+                "execution_mode": {
+                  "type": "string",
+                  "enum": [
+                    "ReadOnly",
+                    "LowRiskMutating"
+                  ]
+                },
+                "idempotency_key": {
+                  "type": "string"
+                },
+                "result_status": {
+                  "type": "string",
+                  "enum": [
+                    "succeeded",
+                    "failed",
+                    "blocked"
+                  ]
+                },
+                "executed_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

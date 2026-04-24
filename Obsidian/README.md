@@ -5,6 +5,11 @@
 - 权威顺序始终是：`docs/` > `Obsidian/` > chat。
 - 如果 `Obsidian/` 和正式设计冲突，以 `docs/` 为准。
 
+## 阅读风格
+- 这里默认也采用“中文优先 + 术语保留英文”的写法。
+- 常见英文术语尽量写成 `English（中文）`，帮助你边读边熟悉英文工作表达。
+- service names、event names、shared type names、`OpenAPI` path、`JSON Schema` key、文件名等正式标识保持英文，不做中文重命名。
+
 ## 先从这里开始
 1. [[00-Overview/权威设计包索引|权威设计包索引]]
 2. [[00-Overview/如何学习这个项目|如何学习这个项目]]

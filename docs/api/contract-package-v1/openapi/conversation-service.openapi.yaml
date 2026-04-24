@@ -1,0 +1,351 @@
+openapi: 3.1.0
+info:
+  title: Conversation Service Contract V1
+  version: 1.0.0
+  description: Operator-facing conversation APIs frozen by Contract Package V1.
+servers:
+  - url: https://api.example.internal
+security:
+  - bearerAuth: []
+tags:
+  - name: conversations
+paths:
+  /v1/conversations:
+    get:
+      tags: [conversations]
+      operationId: listConversations
+      summary: List conversations for the current tenant context.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/TraceParent'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, closed, waiting, assigned]
+        - name: queue_id
+          in: query
+          schema:
+            type: string
+        - name: assigned_agent_id
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/PageToken'
+      responses:
+        '200':
+          description: Conversation page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationListResponse'
+              example:
+                items:
+                  - conversation_id: conv-1001
+                    channel: wechat_customer_service
+                    queue_id: after_sales
+                    status: open
+                    assigned_agent_id: agent-001
+                    last_message_sequence: 91
+                    updated_at: '2026-04-24T09:10:11Z'
+                next_page_token: page-002
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/conversations/{conversation_id}/messages:
+    get:
+      tags: [conversations]
+      operationId: replayConversationMessages
+      summary: Replay committed messages for a conversation.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/TraceParent'
+        - $ref: '#/components/parameters/ConversationId'
+        - name: from_sequence
+          in: query
+          description: Replay from the next committed sequence after this value.
+          schema:
+            type: integer
+            minimum: 0
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Ordered committed messages.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageReplayResponse'
+              example:
+                conversation_id: conv-1001
+                items:
+                  - message_id: msg-9001
+                    sequence: 91
+                    sender_type: customer
+                    message_type: text
+                    text: 请问这个套餐怎么续费
+                    occurred_at: '2026-04-24T09:10:11Z'
+                next_page_token: null
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '409':
+          $ref: '#/components/responses/ErrorResponse'
+    post:
+      tags: [conversations]
+      operationId: sendAgentMessage
+      summary: Create a durable outbound agent intent.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/TraceParent'
+        - $ref: '#/components/parameters/ConversationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendAgentMessageRequest'
+            example:
+              message_type: text
+              text: 您好，我来帮您确认一下续费方案。
+      responses:
+        '202':
+          description: Durable outbound intent accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SendAgentMessageAccepted'
+              example:
+                intent_id: intent-001
+                conversation_id: conv-1001
+                status: accepted
+                idempotency_key: idem-001
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+        '409':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/conversations/{conversation_id}:evaluate:
+    post:
+      tags: [conversations]
+      operationId: evaluateConversation
+      summary: Submit a tenant-scoped conversation evaluation.
+      parameters:
+        - $ref: '#/components/parameters/CorrelationId'
+        - $ref: '#/components/parameters/TraceParent'
+        - $ref: '#/components/parameters/ConversationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversationEvaluationRequest'
+            example:
+              score: 5
+              tags: [resolved, polite]
+              note: 已解决套餐续费问题
+      responses:
+        '200':
+          description: Evaluation persisted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationEvaluationResponse'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+    TraceParent:
+      name: traceparent
+      in: header
+      required: false
+      schema:
+        type: string
+    ConversationId:
+      name: conversation_id
+      in: path
+      required: true
+      schema:
+        type: string
+    PageSize:
+      name: page_size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    PageToken:
+      name: page_token
+      in: query
+      schema:
+        type: string
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+  responses:
+    ErrorResponse:
+      description: Standard error envelope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [code, message, category, retryable, correlation_id]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        category:
+          type: string
+        retryable:
+          type: boolean
+        correlation_id:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+    ConversationSummary:
+      type: object
+      required: [conversation_id, channel, status, updated_at]
+      properties:
+        conversation_id:
+          type: string
+        channel:
+          type: string
+        queue_id:
+          type: string
+        status:
+          type: string
+        assigned_agent_id:
+          type: string
+        last_message_sequence:
+          type: integer
+        updated_at:
+          type: string
+          format: date-time
+    ConversationListResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConversationSummary'
+        next_page_token:
+          type: [string, 'null']
+    AttachmentRef:
+      type: object
+      required: [media_object_id, media_type]
+      properties:
+        media_object_id:
+          type: string
+        media_type:
+          type: string
+          enum: [image, video, file]
+        preview_url:
+          type: string
+          format: uri
+    MessageItem:
+      type: object
+      required: [message_id, sequence, sender_type, message_type, occurred_at]
+      properties:
+        message_id:
+          type: string
+        sequence:
+          type: integer
+        sender_type:
+          type: string
+        message_type:
+          type: string
+        text:
+          type: string
+        attachment_refs:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttachmentRef'
+        occurred_at:
+          type: string
+          format: date-time
+    MessageReplayResponse:
+      type: object
+      required: [conversation_id, items]
+      properties:
+        conversation_id:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageItem'
+        next_page_token:
+          type: [string, 'null']
+    SendAgentMessageRequest:
+      type: object
+      required: [message_type]
+      properties:
+        message_type:
+          type: string
+          enum: [text, image, asset, link_card]
+        text:
+          type: string
+        asset_id:
+          type: string
+        attachment_refs:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttachmentRef'
+    SendAgentMessageAccepted:
+      type: object
+      required: [intent_id, conversation_id, status, idempotency_key]
+      properties:
+        intent_id:
+          type: string
+        conversation_id:
+          type: string
+        status:
+          type: string
+          enum: [accepted]
+        idempotency_key:
+          type: string
+    ConversationEvaluationRequest:
+      type: object
+      required: [score]
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+        tags:
+          type: array
+          items:
+            type: string
+        note:
+          type: string
+    ConversationEvaluationResponse:
+      type: object
+      required: [conversation_id, score, recorded_at]
+      properties:
+        conversation_id:
+          type: string
+        score:
+          type: integer
+        recorded_at:
+          type: string
+          format: date-time

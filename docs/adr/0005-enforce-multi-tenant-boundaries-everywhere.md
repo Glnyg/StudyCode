@@ -1,17 +1,17 @@
-# ADR 0005: Enforce Tenant Boundaries Across Runtime, Search, And AI
+# ADR 0005：在运行时、搜索和 AI 全面执行多租户边界
 
-## Status
-Accepted
+## Status（状态）
+Accepted（已接受）
 
-## Context
-This product is a real multi-tenant customer service system. Search projections, AI policies, and media assets can leak data just as easily as transactional queries if tenant boundaries are weak.
+## Context（背景）
+这是一个真实的多租户客服系统。Search projections、AI policies、media assets 和 transactional queries 一样，都可能在边界不严时泄露数据。
 
-## Decision
-- `tenant_id` is mandatory across requests, events, caches, search documents, object keys, and AI decisions.
-- Missing tenant context fails closed.
-- No production default tenant behavior is allowed.
+## Decision（决策）
+- `tenant_id` 在 requests、events、caches、search documents、object keys、AI decisions 中都是 mandatory（必填）的。
+- 缺少 tenant context 时必须 fail closed。
+- 生产环境不允许有 default tenant 行为。
 
-## Consequences
-- Tenant filtering is mandatory for every search query and every knowledge retrieval.
-- Shared infrastructure does not imply shared data visibility.
-- Cross-tenant tests are required for transactional, search, and AI flows.
+## Consequences（影响）
+- 每个 search query 和每次 knowledge retrieval 都必须做 tenant filtering。
+- shared infrastructure（共享基础设施）不等于 shared data visibility（共享数据可见性）。
+- transactional、search、AI flows 都必须有 cross-tenant tests。

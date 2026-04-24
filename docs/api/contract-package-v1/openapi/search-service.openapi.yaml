@@ -1,0 +1,200 @@
+openapi: 3.1.0
+info:
+  title: Search Service Contract V1
+  version: 1.0.0
+  description: Tenant-safe chat history search contracts.
+servers:
+  - url: https://api.example.internal
+security:
+  - bearerAuth: []
+paths:
+  /v1/search/messages:
+    post:
+      operationId: searchMessages
+      summary: Search chat history for the current tenant.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchMessagesRequest'
+            example:
+              q: 套餐 续费
+              channel: wechat_customer_service
+              queue_id: after_sales
+              from_time: '2026-04-01T00:00:00Z'
+              to_time: '2026-04-24T23:59:59Z'
+              page_size: 50
+      responses:
+        '200':
+          description: Search result page.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchMessagesResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/search/autocomplete:
+    get:
+      operationId: autocompleteSearchHints
+      summary: Autocomplete search hints for a tenant-scoped prefix.
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+      responses:
+        '200':
+          description: Suggestion list.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: string
+  /v1/search/health:
+    get:
+      operationId: getSearchHealth
+      summary: Health surface for the tenant-visible search projection.
+      responses:
+        '200':
+          description: Health snapshot.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, projection_lag_seconds]
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded]
+                  projection_lag_seconds:
+                    type: integer
+                  last_successful_event_at:
+                    type: string
+                    format: date-time
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    ErrorResponse:
+      description: Standard error envelope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [code, message, category, retryable, correlation_id]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        category:
+          type: string
+        retryable:
+          type: boolean
+        correlation_id:
+          type: string
+    SearchMessagesRequest:
+      type: object
+      properties:
+        q:
+          type: string
+        from_time:
+          type: string
+          format: date-time
+        to_time:
+          type: string
+          format: date-time
+        customer_id:
+          type: string
+        agent_id:
+          type: string
+        channel:
+          type: string
+        queue_id:
+          type: string
+        conversation_status:
+          type: string
+        message_type:
+          type: string
+        has_media:
+          type: boolean
+        device_id:
+          type: string
+        order_id:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        page_size:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+        search_after:
+          type: array
+          items:
+            type: string
+    SearchHit:
+      type: object
+      required: [conversation_id, message_id, occurred_at, sender_type, channel, highlights]
+      properties:
+        conversation_id:
+          type: string
+        message_id:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+        sender_type:
+          type: string
+        channel:
+          type: string
+        queue_id:
+          type: string
+        conversation_status:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+        has_media:
+          type: boolean
+        device_id:
+          type: string
+        order_id:
+          type: string
+    SearchMessagesResponse:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SearchHit'
+        next_search_after:
+          type: array
+          items:
+            type: string

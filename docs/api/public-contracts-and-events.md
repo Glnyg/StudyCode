@@ -1,65 +1,48 @@
-# Public Contracts And Events
+# Public Contracts And Events（公共接口与事件）
 
-## API Families
+## Purpose（用途）
+- 这篇文档现在是公共接口（public APIs）和事件（events）的入口索引，不再承载所有细节合同。
+- 具体合同已经冻结到 [contract-package-v1/README.md](./contract-package-v1/README.md)。
 
-### `api-gateway`
-- tenant-aware frontend entry point
-- token forwarding and coarse-grained rate limiting
+## Authoritative Contract Package（权威合同包）
+- 主入口：
+  - [contract-package-v1/README.md](./contract-package-v1/README.md)
+- 横切规则（cross-cutting rules）：
+  - [contract-package-v1/shared-contract-core.md](./contract-package-v1/shared-contract-core.md)
+- 缺口审计（gap audit）与优先级：
+  - [contract-package-v1/00-gap-audit-and-workstreams.md](./contract-package-v1/00-gap-audit-and-workstreams.md)
+- 合同测试基线（contract-test baseline）：
+  - [contract-package-v1/contract-test-baseline.md](./contract-package-v1/contract-test-baseline.md)
 
-### `conversation-service`
-- list conversations
-- replay conversation messages
-- send agent message
-- evaluate conversation
+## HTTP Contract Artifacts（HTTP 合同产物）
+- `conversation-service`
+  - [openapi/conversation-service.openapi.yaml](./contract-package-v1/openapi/conversation-service.openapi.yaml)
+- `routing-service`
+  - [openapi/routing-service.openapi.yaml](./contract-package-v1/openapi/routing-service.openapi.yaml)
+- `search-service`
+  - [openapi/search-service.openapi.yaml](./contract-package-v1/openapi/search-service.openapi.yaml)
+- `media-service`
+  - [openapi/media-service.openapi.yaml](./contract-package-v1/openapi/media-service.openapi.yaml)
+- `ai-service`
+  - [openapi/ai-service.openapi.yaml](./contract-package-v1/openapi/ai-service.openapi.yaml)
+- edge boundary（边缘边界）
+  - [openapi/edge-boundaries.openapi.yaml](./contract-package-v1/openapi/edge-boundaries.openapi.yaml)
 
-### `routing-service`
-- list queues
-- assign or transfer conversation
-- update agent availability
-- manage intervention rules
-- manage response-timeout policies
-- list urgent interventions
-- list response-timeout alerts
-- acknowledge or resolve intervention
+## Event And Shared Schema Artifacts（事件与共享 Schema 产物）
+- shared types（共享类型）
+  - [schemas/shared-types.schema.json](./contract-package-v1/schemas/shared-types.schema.json)
+- error envelope（统一错误信封）
+  - [schemas/error-envelope.schema.json](./contract-package-v1/schemas/error-envelope.schema.json)
+- event envelope（统一事件信封）
+  - [schemas/event-envelope.schema.json](./contract-package-v1/schemas/event-envelope.schema.json)
+- conversation events（会话事件）
+  - [schemas/conversation-events.schema.json](./contract-package-v1/schemas/conversation-events.schema.json)
+- routing and alerting events（路由与告警事件）
+  - [schemas/routing-alerting-events.schema.json](./contract-package-v1/schemas/routing-alerting-events.schema.json)
+- asset and AI events（资产与 AI 事件）
+  - [schemas/asset-ai-events.schema.json](./contract-package-v1/schemas/asset-ai-events.schema.json)
 
-### `search-service`
-- search messages
-- autocomplete search hints
-- get search health
-
-### `media-service`
-- upload fixed assets
-- review asset
-- list tenant assets
-- resolve preview URL
-
-### `ai-service`
-- get reply suggestion
-- execute AI decision
-- retrieve policy snapshot
-- list AI audit records
-
-## Standard Request Context
-- `tenant_id`
-- `correlation_id`
-- authenticated actor identity
-- channel or console origin
-
-## Event Envelope
-```json
-{
-  "event_id": "evt-001",
-  "event_type": "MessageAppended",
-  "tenant_id": "tenant-a",
-  "occurred_at": "2026-04-24T09:10:11Z",
-  "correlation_id": "corr-001",
-  "producer": "conversation-service",
-  "payload_version": 1,
-  "payload": {}
-}
-```
-
-## Event Catalog V1
+## Event Catalog V1（事件目录）
 - `MessageAppended`
 - `MessageRedacted`
 - `ConversationClosed`
@@ -78,118 +61,17 @@
 - `KnowledgeReleasePublished`
 - `LowRiskToolExecuted`
 
-## MessageAppended Payload
-```json
-{
-  "conversation_id": "conv-1001",
-  "message_id": "msg-9001",
-  "sender_type": "customer",
-  "message_type": "text",
-  "channel": "wechat_customer_service",
-  "queue_id": "after_sales",
-  "search_text": "请问这个套餐怎么续费",
-  "has_media": false,
-  "device_id": "wifi-001",
-  "order_id": "order-002",
-  "tags": ["package", "renewal"]
-}
-```
+## Shared Rules（共享规则）
+- trusted `tenant_id` 只能来自 token、verified channel binding（已验证通道绑定）或 trusted internal event envelope（可信内部事件信封）。
+- side-effecting `POST`（有副作用的 POST）必须显式声明是否要求 `Idempotency-Key`。
+- versioned config writes（版本化配置写入）使用 `If-Match`。
+- search 分页使用 `search_after`。
+- realtime replay（实时重放）使用 `last_seen_sequence`。
+- events 必须 replay-safe（可重放）并兼容 at-least-once delivery（至少一次投递）。
+- breaking contract change（破坏性合同变更）必须同步更新 ADR、examples、negative cases、compatibility notes。
 
-## Search API Shape
-```json
-POST /search/messages
-{
-  "tenant_id": "tenant-a",
-  "q": "续费",
-  "channel": "wechat_customer_service",
-  "page_size": 20
-}
-```
-
-## UrgentInterventionTriggered Payload
-```json
-{
-  "intervention_id": "int-1001",
-  "conversation_id": "conv-1001",
-  "trigger_message_id": "msg-9001",
-  "rule_id": "rule-complaint-01",
-  "severity": "critical",
-  "matched_terms": ["投诉", "12315"],
-  "channel": "wechat_customer_service",
-  "queue_id": "after_sales",
-  "device_id": "wifi-001",
-  "enrichment_status": "resolved"
-}
-```
-
-## ResponseTimeoutAlertTriggered Payload
-```json
-{
-  "alert_id": "rta-1001",
-  "conversation_id": "conv-1001",
-  "waiting_message_id": "msg-9001",
-  "assignment_id": "asn-2001",
-  "agent_id": "agent-001",
-  "queue_id": "after_sales",
-  "policy_id": "resp-after-sales",
-  "waiting_started_at": "2026-04-24T09:10:11Z",
-  "due_at": "2026-04-24T09:20:11Z",
-  "triggered_at": "2026-04-24T09:20:16Z",
-  "device_id": "wifi-001",
-  "enrichment_status": "resolved"
-}
-```
-
-## ResponseTimeoutAlertCleared Payload
-```json
-{
-  "alert_id": "rta-1001",
-  "conversation_id": "conv-1001",
-  "waiting_message_id": "msg-9001",
-  "assignment_id": "asn-2001",
-  "cleared_at": "2026-04-24T09:21:03Z",
-  "clear_reason": "human_reply"
-}
-```
-
-## ManagementNotificationDispatched Payload Additions
-```json
-{
-  "source_type": "response_timeout",
-  "source_id": "rta-1001"
-}
-```
-
-- `source_type` and `source_id` are optional additions for compatibility with existing consumers.
-- Canonical values are:
-  - `source_type = urgent_intervention`, `source_id = intervention_id`
-  - `source_type = response_timeout`, `source_id = alert_id`
-- Consumers must tolerate missing `source_type` and `source_id` on legacy dispatch records.
-
-## Shared Type Names
-- `TenantContext`
-- `UserContext`
-- `ConversationContext`
-- `MessageEnvelope`
-- `AttachmentRef`
-- `MediaObject`
-- `AssetItem`
-- `LinkCardTemplate`
-- `InterventionRule`
-- `UrgentIntervention`
-- `ResponseTimeoutPolicy`
-- `ResponseTimeoutAlert`
-- `NotificationEndpoint`
-- `NotificationDelivery`
-- `AiDecisionContext`
-- `AiDecisionResult`
-- `ToolExecutionRequest`
-- `ToolExecutionResult`
-- `AuditEnvelope`
-
-## Contract Rules
-- Public APIs may not infer tenant from nullable client input when a trusted resolver exists.
-- Events must be idempotent and replay-safe.
-- Removing or renaming event fields requires an ADR and migration notes.
-- Realtime consumers must tolerate at-least-once delivery and replay by `message_id` plus `sequence`.
-- Management notification delivery must be idempotent by `source_type + source_id + endpoint_id + template_version`.
+## Change Workflow（变更流程）
+1. 先更新 `contract-package-v1/` 下的权威合同。
+2. 如果涉及 breaking change，同步更新 `docs/adr/0010-freeze-contract-package-v1-as-implementation-ready-baseline.md` 或新增 ADR。
+3. 再同步 `Obsidian/05-API/公共接口与事件目录.md`。
+4. 最后才允许实现代码跟进。

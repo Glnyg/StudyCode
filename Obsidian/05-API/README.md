@@ -2,6 +2,7 @@
 
 ## 这部分讲什么
 - 这里讲系统对外接口、对内事件、共享字段约束，以及契约变更时要同步更新哪些面。
+- 这一层现在以 [[Contract Package V1]] 为正式学习入口，帮助你把人类可读说明和机器可读合同放在一起理解。
 
 ## 为什么重要
 - 对这个项目来说，接口和事件不是“实现细节”，而是跨服务协作的正式边界。
@@ -12,6 +13,7 @@
 
 ## 对应正式文档
 - `docs/api/public-contracts-and-events.md`
+- `docs/api/contract-package-v1/README.md`
 
 ## 读完去哪里
 - 想看服务职责：[[01-Architecture/README|01-Architecture]]

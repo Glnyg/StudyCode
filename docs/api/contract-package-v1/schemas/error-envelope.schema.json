@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://customerservice.local/docs/api/contract-package-v1/schemas/error-envelope.schema.json",
+  "title": "Error Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "code",
+    "message",
+    "category",
+    "retryable",
+    "correlation_id"
+  ],
+  "properties": {
+    "code": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+\\.[a-z0-9_]+$"
+    },
+    "message": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "validation",
+        "auth",
+        "authorization",
+        "conflict",
+        "not_found",
+        "degraded",
+        "dependency",
+        "policy",
+        "internal"
+      ]
+    },
+    "retryable": {
+      "type": "boolean"
+    },
+    "correlation_id": {
+      "type": "string"
+    },
+    "details": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "reason"
+        ],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "example": {
+    "code": "search.degraded_unavailable",
+    "message": "OpenSearch is currently unavailable for tenant-safe chat search.",
+    "category": "degraded",
+    "retryable": true,
+    "correlation_id": "corr-9a22",
+    "details": {
+      "service": "search-service"
+    }
+  }
+}

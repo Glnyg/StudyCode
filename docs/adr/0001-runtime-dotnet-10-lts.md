@@ -1,15 +1,15 @@
-# ADR 0001: Adopt .NET 10 LTS As The Runtime Baseline
+# ADR 0001：采用 .NET 10 LTS 作为运行时基线
 
-## Status
-Accepted
+## Status（状态）
+Accepted（已接受）
 
-## Context
-This system starts in 2026 and targets long-lived production use. `.NET 8` support ends on 2026-11-10, which is too close for a greenfield platform baseline.
+## Context（背景）
+这个系统从 2026 年开始建设，目标是长期生产使用。`.NET 8` 的支持会在 2026-11-10 结束，对于一个 greenfield（全新）平台基线来说时间太近。
 
-## Decision
-Adopt `.NET 10 LTS` as the default runtime, SDK, and ASP.NET Core baseline for all new services.
+## Decision（决策）
+采用 `.NET 10 LTS` 作为所有新服务的默认 runtime、SDK 和 ASP.NET Core 基线。
 
-## Consequences
-- New services target `.NET 10`.
-- Runtime guidance, CI, container images, and deployment documentation align to `.NET 10`.
-- Falling back to `.NET 8` requires an explicit exception and migration plan.
+## Consequences（影响）
+- 新服务默认目标框架是 `.NET 10`。
+- runtime guidance、CI、container images、deployment documentation 都围绕 `.NET 10` 对齐。
+- 如果要回退到 `.NET 8`，必须有显式例外说明和 migration plan（迁移计划）。
