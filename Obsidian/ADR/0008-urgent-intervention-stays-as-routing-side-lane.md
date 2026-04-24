@@ -8,10 +8,10 @@
 - 这个能力不能拖慢客服实时聊天主流程。
 
 ## 决策
-- 把这项能力归到 `routing-service`。
-- 由已提交的 `MessageAppended` 事件异步触发。
+- 把这项能力归到 [[routing-service]]。
+- 由已提交的 [[MessageAppended]] 事件异步触发。
 - 第一版先用确定性关键词规则。
-- 设备信息补充通过 `device-service` 做可选增强。
+- 设备信息补充通过 [[device-service]] 做可选增强。
 - 先不单独拆 `notification-service`。
 
 ## 影响

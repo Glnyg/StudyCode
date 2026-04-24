@@ -18,17 +18,17 @@
 - 如果全部都用事务脚本，又会让核心域规则散落各处。
 
 ## 哪些服务适合 Pragmatic DDD
-- `conversation-service`
-- `routing-service`
-- `knowledge-service`
-- `media-service` 的素材治理
+- [[conversation-service]]
+- [[routing-service]]
+- [[knowledge-service]]
+- [[media-service]] 的素材治理
 
 ## 哪些服务适合 Workflow-first
-- `channel-service`
-- `search-service`
-- `analytics-service`
-- `ai-service`
-- `device-service`
+- [[channel-service]]
+- [[search-service]]
+- [[analytics-service]]
+- [[ai-service]]
+- [[device-service]]
 
 ## 测试怎么保证
 - 核心域：先写领域不变量测试

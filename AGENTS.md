@@ -11,6 +11,8 @@
 - Do not scaffold or change services, shared contracts, AI policies, search models, or data ownership rules before the relevant design docs and ADRs exist or are updated.
 - Any change to public APIs, event contracts, service boundaries, AI policy/config shape, search index model, or retention strategy must update `docs/`, the matching `Obsidian/` note, and a relevant ADR in the same change.
 - Obsidian notes must assume the reader is a beginner. First mentions of important technical terms should use Obsidian wikilinks to glossary notes.
+- When editing `Obsidian/`, add wikilinks for the first important mention and other high-signal teaching mentions of official services, events, domain objects, glossary concepts, and ADR-backed terms. This especially includes overview bullets, service or object lists, event catalogs, section summaries, and navigation/index notes.
+- If a formal term is reused across notes and does not have a stable wikilink target yet, add or update the matching glossary/topic note in the same change. Do not force wikilinks inside code blocks, JSON, Mermaid syntax labels, file paths, or negative/hypothetical examples.
 - Core Obsidian notes should explain: what it is, why it matters, how this project uses it, how to apply it in production/work, how to explain it in interviews, and what to study next.
 
 ## Codex Git Workflow

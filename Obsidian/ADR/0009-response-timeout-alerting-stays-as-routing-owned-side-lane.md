@@ -8,10 +8,10 @@
 - 这个能力不能拖慢客服实时聊天主流程。
 
 ## 决策
-- 把这项能力归到 `routing-service`。
-- 基于已提交的 `MessageAppended`、接待变更和关单事实异步维护等待窗口。
-- 单独定义 `ResponseTimeoutPolicy` 和 `ResponseTimeoutAlert`，不复用 `UrgentIntervention`。
-- 通知发送继续复用 `routing-service` 里的管理通知适配层。
+- 把这项能力归到 [[routing-service]]。
+- 基于已提交的 [[MessageAppended]]、接待变更和关单事实异步维护等待窗口。
+- 单独定义 [[ResponseTimeoutPolicy]] 和 [[ResponseTimeoutAlert]]，不复用 [[UrgentIntervention]]。
+- 通知发送继续复用 [[routing-service]] 里的管理通知适配层。
 - 第一版不单独拆 `notification-service`。
 
 ## 影响

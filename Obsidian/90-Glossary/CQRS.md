@@ -5,8 +5,8 @@
 - 简单说，就是把“写入”和“读取”按职责拆开。
 
 ## 在本项目里怎么用
-- `conversation-service` 写真相。
-- `search-service` 和 `analytics-service` 做读模型。
+- [[conversation-service]] 写真相。
+- [[search-service]] 和 [[analytics-service]] 做读模型。
 
 ## 生产里要注意
 - 读写分离有价值时再用。
