@@ -4,7 +4,7 @@
 - 指优先把代码组织成清晰的业务流程、编排步骤和应用服务，而不是先堆复杂领域对象。
 
 ## 在本项目里怎么用
-- `channel-service`、`search-service`、`ai-service`、`analytics-service` 更适合 Workflow-first。
+- [[channel-service]]、[[search-service]]、[[ai-service]]、[[analytics-service]] 更适合 Workflow-first。
 
 ## 生产里要注意
 - Workflow-first 不等于随便写。

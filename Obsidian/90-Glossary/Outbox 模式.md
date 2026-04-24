@@ -5,7 +5,7 @@
 - 通常先把事件写到本地 Outbox 表，再异步投递到消息系统。
 
 ## 在本项目里怎么用
-- `conversation-service` 写消息真相时，同时写 Outbox，再发给 [[RabbitMQ]]。
+- [[conversation-service]] 写消息真相时，同时写 Outbox，再发给 [[RabbitMQ]]。
 
 ## 生产里要注意
 - 事件要可重试
