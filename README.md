@@ -4,7 +4,7 @@ Production-oriented design package for a multi-tenant portable WiFi customer ser
 
 ## Start Here
 - Formal design authority: [docs/README.md](docs/README.md)
-- Learning mirror: [Obsidian/00-Overview/authority-package.md](Obsidian/00-Overview/authority-package.md)
+- Learning mirror: [Obsidian/README.md](Obsidian/README.md)
 - Hard rules: [AGENTS.md](AGENTS.md)
 - Implementation readiness: [docs/architecture/implementation-readiness-and-design-freeze.md](docs/architecture/implementation-readiness-and-design-freeze.md)
 - Codex worktree workflow: [docs/platform/codex-worktree-workflow.md](docs/platform/codex-worktree-workflow.md)
