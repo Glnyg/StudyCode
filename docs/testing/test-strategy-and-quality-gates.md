@@ -25,6 +25,7 @@ Examples:
 - AI orchestration step ordering
 - device command flow
 - urgent intervention notification flow
+- response-timeout alert scheduling and dispatch
 
 Required:
 - application-service tests
@@ -92,6 +93,7 @@ These require especially strong coverage:
 - outbox/inbox replay
 - queue assignment and transfer
 - urgent intervention trigger, dedupe, and notification retry
+- response-timeout window creation, clear semantics, dedupe, and notification retry
 - AI tool gating
 - tenant isolation
 - search projection rebuild

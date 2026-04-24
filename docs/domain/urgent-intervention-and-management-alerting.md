@@ -14,6 +14,7 @@ Provide a deterministic, tenant-safe way to detect configured high-risk conversa
 - no AI semantic classifier as the primary trigger mechanism
 - no image OCR, video ASR, or video understanding for alert matching
 - no direct customer-facing automatic reply from the alert flow
+- no assigned-agent response-timeout or customer-wait SLA alerting in this model
 - no requirement for a dedicated `notification-service` on day one
 
 ## Design Principles
@@ -21,6 +22,7 @@ Provide a deterministic, tenant-safe way to detect configured high-risk conversa
 - message durability and agent push happen first; alerting reacts after source-of-truth commit
 - deterministic rules come before AI heuristics
 - device enrichment is optional and bounded by timeout
+- urgent intervention and response-timeout alerting may reuse notification adapters, but they keep separate rules, records, and lifecycle semantics
 - notifications are best-effort with retry, but alert creation and audit must be durable
 
 ## Ownership

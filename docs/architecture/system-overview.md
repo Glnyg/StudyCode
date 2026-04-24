@@ -5,7 +5,7 @@ Build a production-grade, multi-tenant customer service system for portable WiFi
 
 ## Product Scope
 - Customer entry: Enterprise WeChat customer service and official account channels.
-- Human support: realtime chat, routing, queueing, transfer, assist, evaluation, quality inspection, performance analytics, and urgent manager intervention notification.
+- Human support: realtime chat, routing, queueing, transfer, assist, evaluation, quality inspection, performance analytics, urgent manager intervention notification, and assigned-agent response-timeout alerting.
 - AI support: reply recommendation, autopilot replies, image-aware handling, controlled tool execution, knowledge retrieval, and learning candidates.
 - Business support: device information lookup, order/after-sales facts, and package recommendation.
 
@@ -45,7 +45,7 @@ Build a production-grade, multi-tenant customer service system for portable WiFi
 - Channel webhooks are verified and normalized by `channel-service`.
 - Durable message and conversation state are owned by `conversation-service`.
 - Queueing, assignment, transfer, and agent state are owned by `routing-service`.
-- High-risk intervention rules, intervention acknowledgement, and management alert dispatch are owned by `routing-service`.
+- High-risk intervention rules, response-timeout alerting, and management alert dispatch are owned by `routing-service`.
 - Realtime fan-out to agent and supervisor consoles is owned by `realtime-gateway`.
 - AI decisions, knowledge retrieval, and controlled tool execution are owned by `ai-service`.
 - Search projections are built asynchronously by `search-service` from domain events.

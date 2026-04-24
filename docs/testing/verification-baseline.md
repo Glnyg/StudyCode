@@ -35,12 +35,19 @@
 - configuration publish and rollback traceability
 - conversation-level AI replay
 
-## Intervention Checks
+## Management Alert Checks
 - configured keyword hit triggers urgent intervention
 - non-matching text does not trigger
+- assigned conversation with no human reply within `N` minutes triggers one response-timeout alert
+- human reply before the deadline suppresses the response-timeout alert
+- no active human assignment means no response-timeout alert
+- transfer resets the timeout window for the new assignee
+- conversation close clears pending response-timeout state without sending a new alert
 - cooldown window prevents duplicate alerts for the same conversation and rule
+- duplicate delivery or worker restart does not emit duplicate response-timeout notifications for the same waiting round
 - device enrichment timeout still sends the notification with explicit fallback state
-- acknowledgement and resolution are auditable
+- urgent intervention acknowledgement and resolution are auditable
+- response-timeout alert clear reason is auditable
 - Enterprise WeChat or Feishu provider failure does not block chat flow
 
 ## Failure Drills

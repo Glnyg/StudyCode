@@ -9,7 +9,7 @@
 | `identity-service` | local accounts, roles, permissions, token issuance | queueing, conversations | PostgreSQL | none |
 | `channel-service` | upstream webhook validation, channel normalization, media callback intake | durable conversation state | `conversation-service`, `media-service` | none |
 | `conversation-service` | messages, conversation state, audit trail, evaluations | queue strategy, AI policy, search indexes | PostgreSQL, `routing-service` | publishes domain events |
-| `routing-service` | queue, assignment, transfer, agent presence, inactivity offline, intervention rules, urgent intervention lifecycle, management alert dispatch | message persistence | PostgreSQL, Redis, `device-service` | publishes routing events |
+| `routing-service` | queue, assignment, transfer, agent presence, inactivity offline, intervention rules, urgent intervention lifecycle, response-timeout policies, response-timeout alert lifecycle, management alert dispatch | message persistence | PostgreSQL, Redis, `device-service` | publishes routing events |
 | `media-service` | object storage writes, media metadata, fixed asset library, media security workflow | AI reasoning, conversation truth | MinIO/S3, PostgreSQL | media processing jobs |
 | `search-service` | OpenSearch projection, search APIs, autocomplete, search rebuild | source-of-truth messages | OpenSearch, `conversation-service` | consumes conversation events |
 | `knowledge-service` | document import, chunking orchestration, embedding jobs, knowledge releases | chat policy execution | PostgreSQL, object storage | knowledge events |
@@ -22,7 +22,7 @@
   - `channel-service -> conversation-service -> RabbitMQ -> realtime-gateway`
 - Control lane:
   - `routing-service`, `identity-service`
-- Intervention lane:
+- Management alert lane:
   - `conversation-service -> RabbitMQ -> routing-service -> device-service(optional) -> management notification providers`
 - Search lane:
   - `conversation-service -> RabbitMQ -> search-service -> OpenSearch`
@@ -39,7 +39,7 @@
 - `search-service` may only consume events or read published projections, never mutate transactional state.
 - `ai-service` may never write device facts or conversation truth directly; it issues explicit commands to owned services.
 - `realtime-gateway` may never invent or reorder business events; it only pushes already-decided state changes.
-- High-risk keyword intervention and management notification must remain asynchronous side-lane work; they may not delay inbound ack or agent push.
+- High-risk keyword intervention, assigned-agent response-timeout alerting, and management notification must remain asynchronous side-lane work; they may not delay inbound ack or agent push.
 
 ## Kubernetes Topology
 - Namespace groups:
@@ -65,4 +65,4 @@
 - `search-service`: scale separately for indexing and query workloads.
 - `ai-service`: scale by model latency and tool-call throughput.
 - `routing-service`: scale by queue mutation rate and agent state churn.
-- `routing-service` intervention workers: scale by matched-message throughput, enrichment latency, and notification retry volume.
+- `routing-service` management-alert workers: scale by matched-message throughput, waiting-window volume, enrichment latency, and notification retry volume.

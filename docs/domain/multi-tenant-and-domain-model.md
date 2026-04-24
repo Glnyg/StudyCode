@@ -49,6 +49,8 @@
   - `AgentPresence`
   - `InterventionRule`
   - `UrgentIntervention`
+  - `ResponseTimeoutPolicy`
+  - `ResponseTimeoutAlert`
 - Routing rules are configuration-driven per tenant.
 - Assist replies do not change the primary assigned agent.
 - Transfer must preserve the full conversation and audit chain.
@@ -60,6 +62,13 @@
 - Intervention notifications are side-lane effects and may not block chat truth or realtime delivery.
 - Device enrichment is optional and comes only from trusted business facts.
 - Every intervention and delivery attempt must be auditable, idempotent, and tenant-scoped.
+
+## Response Timeout Model
+- Assigned-human response-timeout monitoring is tenant-configured and routing-owned.
+- Policy resolution uses tenant default plus exact queue override.
+- Timers derive only from committed customer messages and trusted assignment-effective time.
+- Human-visible agent reply, transfer, or conversation close clears the active waiting state.
+- Every waiting window, timeout alert, and delivery attempt must be auditable, idempotent, and tenant-scoped.
 
 ## Media Model
 - User can send:
