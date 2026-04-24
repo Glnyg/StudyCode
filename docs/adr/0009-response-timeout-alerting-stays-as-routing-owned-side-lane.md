@@ -1,29 +1,29 @@
-# ADR 0009: Response Timeout Alerting Stays As A Routing-Owned Side Lane
+# ADR 0009：客服未回复超时告警保持为路由侧拥有的旁路能力
 
-## Status
-Accepted
+## Status（状态）
+Accepted（已接受）
 
-## Context
-The system needs to support tenant-configured alerts for assigned human conversations where the customer has waited longer than a configured number of minutes without a human reply. These alerts need to notify management channels like Enterprise WeChat or Feishu and may include optional device enrichment, but they must not block inbound chat durability or realtime agent delivery.
+## Context（背景）
+系统需要支持 tenant-configured 的超时告警：当一个已经分配给人工的会话，在设定分钟数内没有人工回复时，向 Enterprise WeChat 或 Feishu 等管理渠道发内部提醒。它也可能需要补充 device enrichment，但不能阻塞 inbound chat durability 或 realtime agent delivery。
 
-Possible placements included:
+可选放置位置包括：
 - `conversation-service`
 - `routing-service`
-- a new dedicated `notification-service`
-- external cron or observability tooling
+- 新的 `notification-service`
+- 外部 cron 或 observability tooling
 
-## Decision
-- Keep response timeout alerting as a `routing-service` owned capability.
-- Trigger it asynchronously from committed `MessageAppended`, `ConversationAssigned`, `TransferCompleted`, and `ConversationClosed` facts after source-of-truth commit.
-- Keep `ResponseTimeoutPolicy` and `ResponseTimeoutAlert` as separate models from `UrgentIntervention`.
-- Resolve timeout policy by tenant default plus exact queue override.
-- Allow optional device enrichment through `device-service`.
-- Dispatch management notifications through provider adapters or workers owned by `routing-service`.
-- Do not introduce a dedicated `notification-service` unless provider scope or throughput later justifies a split.
+## Decision（决策）
+- 把 response-timeout alerting 保持为 `routing-service` owned capability。
+- 在 source-of-truth commit 完成后，基于 `MessageAppended`、`ConversationAssigned`、`TransferCompleted`、`ConversationClosed` 异步触发。
+- `ResponseTimeoutPolicy` 和 `ResponseTimeoutAlert` 与 `UrgentIntervention` 分开建模。
+- timeout policy 按 tenant default + exact queue override 解析。
+- 允许通过 `device-service` 做 optional device enrichment。
+- 管理通知通过 `routing-service` 自己的 provider adapters 或 workers 发送。
+- 除非 provider 范围或吞吐量未来真的需要，否则不新增独立 `notification-service`。
 
-## Consequences
-- the hot chat path remains unchanged
-- response-timeout policy, waiting-window state, and management notification orchestration stay in one control-domain service
-- timeout alerts and keyword interventions can share notification adapters without sharing lifecycle semantics
-- notification failures do not corrupt conversation truth
-- future expansion to repeated reminders or escalations remains possible without moving message truth or routing ownership
+## Consequences（影响）
+- hot chat path 保持不变。
+- response-timeout policy、waiting-window state、management notification orchestration 保持在同一个 control-domain service。
+- timeout alerts 与 keyword interventions 可以共用 notification adapters，但不共享 lifecycle semantics（生命周期语义）。
+- notification failures 不会破坏 conversation truth。
+- 未来如果要扩展 repeated reminders（重复提醒）或 escalations（升级机制），也不需要移动 message truth 或 routing ownership。

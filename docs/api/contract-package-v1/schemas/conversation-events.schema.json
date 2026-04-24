@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://customerservice.local/docs/api/contract-package-v1/schemas/conversation-events.schema.json",
+  "title": "Conversation Events",
+  "examples": [
+    {
+      "event_id": "evt-msg-001",
+      "event_type": "MessageAppended",
+      "tenant_id": "tenant-a",
+      "occurred_at": "2026-04-24T09:10:11Z",
+      "correlation_id": "corr-001",
+      "producer": "conversation-service",
+      "payload_version": 1,
+      "payload": {
+        "conversation_id": "conv-1001",
+        "message_id": "msg-9001",
+        "sequence": 91,
+        "sender_type": "customer",
+        "message_type": "text",
+        "channel": "wechat_customer_service",
+        "queue_id": "after_sales",
+        "search_text": "请问这个套餐怎么续费",
+        "has_media": false
+      }
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/MessageAppended"
+    },
+    {
+      "$ref": "#/$defs/MessageRedacted"
+    },
+    {
+      "$ref": "#/$defs/ConversationClosed"
+    },
+    {
+      "$ref": "#/$defs/ConversationTagged"
+    }
+  ],
+  "$defs": {
+    "EnvelopeBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_type",
+        "tenant_id",
+        "occurred_at",
+        "correlation_id",
+        "producer",
+        "payload_version",
+        "payload"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string"
+        },
+        "event_type": {
+          "type": "string"
+        },
+        "tenant_id": {
+          "type": "string"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "correlation_id": {
+          "type": "string"
+        },
+        "producer": {
+          "const": "conversation-service"
+        },
+        "payload_version": {
+          "const": 1
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    },
+    "MessageAppended": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "MessageAppended"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "conversation_id",
+                "message_id",
+                "sequence",
+                "sender_type",
+                "message_type",
+                "channel",
+                "has_media"
+              ],
+              "properties": {
+                "conversation_id": {
+                  "type": "string"
+                },
+                "message_id": {
+                  "type": "string"
+                },
+                "sequence": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "sender_type": {
+                  "type": "string",
+                  "enum": [
+                    "customer",
+                    "agent",
+                    "ai",
+                    "system"
+                  ]
+                },
+                "message_type": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "image",
+                    "video",
+                    "system",
+                    "asset",
+                    "link_card"
+                  ]
+                },
+                "channel": {
+                  "type": "string"
+                },
+                "queue_id": {
+                  "type": "string"
+                },
+                "search_text": {
+                  "type": "string"
+                },
+                "has_media": {
+                  "type": "boolean"
+                },
+                "device_id": {
+                  "type": "string"
+                },
+                "order_id": {
+                  "type": "string"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "example": {
+            "event_id": "evt-msg-001",
+            "event_type": "MessageAppended",
+            "tenant_id": "tenant-a",
+            "occurred_at": "2026-04-24T09:10:11Z",
+            "correlation_id": "corr-001",
+            "producer": "conversation-service",
+            "payload_version": 1,
+            "payload": {
+              "conversation_id": "conv-1001",
+              "message_id": "msg-9001",
+              "sequence": 91,
+              "sender_type": "customer",
+              "message_type": "text",
+              "channel": "wechat_customer_service",
+              "queue_id": "after_sales",
+              "search_text": "请问这个套餐怎么续费",
+              "has_media": false,
+              "device_id": "wifi-001",
+              "order_id": "order-002",
+              "tags": [
+                "package",
+                "renewal"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "MessageRedacted": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "MessageRedacted"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "conversation_id",
+                "message_id",
+                "redacted_at",
+                "reason"
+              ],
+              "properties": {
+                "conversation_id": {
+                  "type": "string"
+                },
+                "message_id": {
+                  "type": "string"
+                },
+                "redacted_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ConversationClosed": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "ConversationClosed"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "conversation_id",
+                "closed_at",
+                "close_reason"
+              ],
+              "properties": {
+                "conversation_id": {
+                  "type": "string"
+                },
+                "closed_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "close_reason": {
+                  "type": "string"
+                },
+                "closed_by": {
+                  "type": "string"
+                },
+                "final_queue_id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ConversationTagged": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "ConversationTagged"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "conversation_id",
+                "tags",
+                "changed_at"
+              ],
+              "properties": {
+                "conversation_id": {
+                  "type": "string"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "changed_by": {
+                  "type": "string"
+                },
+                "changed_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

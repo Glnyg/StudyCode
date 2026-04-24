@@ -1,45 +1,51 @@
-# Customer Service Authority Package
+# Customer Service Authority Package（客服系统权威设计包）
 
-## Purpose
-- This directory is the formal source of truth for the portable WiFi customer service system.
-- Code generation, implementation, review, and future AI-assisted changes must follow these documents before relying on chat context.
+## Purpose（用途）
+- `docs/` 是这个便携 WiFi 客服系统的正式设计权威目录（formal source of truth）。
+- 代码生成（code generation）、实现（implementation）、评审（review）和后续 AI-assisted changes（AI 辅助改动），都应先遵守这里的文档，再参考聊天上下文。
 
-## Precedence
+## Precedence（权威顺序）
 1. `docs/`
 2. `Obsidian/`
-3. Chat memory
+3. 聊天记忆（chat memory）
 
-`AGENTS.md` contains hard process and safety guardrails. It does not replace formal design documents.
+`AGENTS.md` 提供硬性的流程和安全护栏（guardrails），但不替代正式设计文档。
 
-## Entry Points
-- `architecture/system-overview.md`: system goals, operating model, and top-level architecture.
-- `architecture/service-boundaries-and-runtime-topology.md`: service ownership, runtime lanes, and hot-path rules.
-- `architecture/implementation-readiness-and-design-freeze.md`: what is already frozen, what still blocks coding, and the required delivery order.
-- `architecture/implementation-style-pragmatic-ddd-workflow-first.md`: official implementation style, where DDD/CQRS apply, where workflow-first wins, and how TDD should be layered.
-- `domain/multi-tenant-and-domain-model.md`: tenant model, identity, conversation lifecycle, routing, media, and asset boundaries.
-- `domain/urgent-intervention-and-management-alerting.md`: high-risk keyword detection, urgent intervention, management notification, and device-enrichment rules.
-- `search/chat-history-search.md`: chat history search design and OpenSearch read-side rules.
-- `ai/ai-service-design.md`: AI service structure, policy model, tool execution, and multimodal handling.
-- `ai/knowledge-rag-design.md`: knowledge base and RAG data flow, release, and evaluation.
-- `data/storage-and-retention.md`: PostgreSQL, OpenSearch, Redis, RabbitMQ, and object storage responsibilities.
-- `reliability/power-loss-and-recovery.md`: recovery semantics, no-loss guarantees, replay rules, and single-node failure behavior.
-- `api/public-contracts-and-events.md`: public HTTP/gRPC contracts, event envelope, and shared types.
-- `platform/k8s-baseline.md`: Kubernetes baseline, observability, and delivery rules.
-- `testing/verification-baseline.md`: acceptance checks, failure drills, and performance targets.
-- `testing/test-strategy-and-quality-gates.md`: mandatory test layers, quality gates, and what “tests have guarantees” means in this repo.
-- `adr/`: frozen architectural decisions that future changes must amend instead of overriding silently.
+## Reading Style（阅读方式）
+- 本仓库的正式说明文档默认用中文表达。
+- 大多数常用英文术语会保留英文，并尽量写成 `English（中文）`，帮助读者逐步熟悉英文工作表达。
+- services、events、shared types、headers、paths、schema keys 等正式 contract identity（合同标识）保持英文，不会在文档里被重命名。
 
-## Design Change Workflow
-1. Update the relevant design doc before or with the first code change.
-2. Add or amend an ADR when changing runtime, data ownership, search architecture, AI policy model, or tenant boundaries.
-3. Mirror the final design change into the corresponding note under `Obsidian/`.
-4. Only then scaffold or modify implementation code.
+## Entry Points（入口文档）
+- `architecture/system-overview.md`：系统目标、运行模型（operating model）和顶层架构。
+- `architecture/service-boundaries-and-runtime-topology.md`：service ownership（服务归属）、runtime lanes（运行时通道）和 hot-path rules（热路径规则）。
+- `architecture/implementation-readiness-and-design-freeze.md`：哪些内容已经 freeze（冻结）、哪些内容仍然阻塞 coding（编码）、推荐交付顺序是什么。
+- `architecture/implementation-style-pragmatic-ddd-workflow-first.md`：官方实现风格，说明 DDD/CQRS 在哪里适用，哪里应该 workflow-first。
+- `domain/multi-tenant-and-domain-model.md`：tenant model、identity、conversation lifecycle、routing、media、asset boundaries。
+- `domain/urgent-intervention-and-management-alerting.md`：高风险关键词告警（urgent intervention）、管理通知（management notification）和设备补充信息（device enrichment）规则。
+- `search/chat-history-search.md`：chat history search（聊天记录搜索）设计和 OpenSearch read-side 规则。
+- `ai/ai-service-design.md`：AI service 结构、policy model、tool execution、multimodal handling。
+- `ai/knowledge-rag-design.md`：knowledge base 与 RAG 的数据流、发布和评估。
+- `data/storage-and-retention.md`：PostgreSQL、OpenSearch、Redis、RabbitMQ、object storage 的职责划分。
+- `reliability/power-loss-and-recovery.md`：掉电恢复（power loss and recovery）、不丢消息保证（no-loss guarantees）、replay rules 和单节点故障行为。
+- `api/public-contracts-and-events.md`：API / event contract 入口索引与变更流程。
+- `api/contract-package-v1/README.md`：面向实现的 `OpenAPI` / `JSON Schema` 合同冻结包（contract package）。
+- `platform/k8s-baseline.md`：Kubernetes 基线、observability（可观测性）和交付规则。
+- `testing/verification-baseline.md`：验收检查、故障演练（failure drills）和性能目标。
+- `testing/test-strategy-and-quality-gates.md`：测试层级（test layers）、质量闸门（quality gates）和“tests have guarantees”的含义。
+- `adr/`：已经冻结的架构决策（architectural decisions）。
 
-## Current Baseline
-- Runtime: `.NET 10 LTS`
-- Deployment: `RKE2 Kubernetes`, single production cluster, multi-node HA
-- Transaction source of truth: `PostgreSQL + pgvector`
-- Search read-side: `OpenSearch`
-- Messaging: `RabbitMQ`
-- Realtime: `SignalR`
-- Object storage: `MinIO/S3`
+## Design Change Workflow（设计变更流程）
+1. 在第一次代码改动之前或同时，先更新相关设计文档。
+2. 如果变更涉及 runtime、data ownership、search architecture、AI policy model 或 tenant boundaries，就新增或修订 ADR。
+3. 把最终设计同步到对应的 `Obsidian/` note。
+4. 然后才允许 scaffold 或修改实现代码。
+
+## Current Baseline（当前基线）
+- Runtime：`.NET 10 LTS`
+- Deployment：`RKE2 Kubernetes`，单生产集群（single production cluster），多节点高可用（multi-node HA）
+- Transaction source of truth：`PostgreSQL + pgvector`
+- Search read-side：`OpenSearch`
+- Messaging：`RabbitMQ`
+- Realtime：`SignalR`
+- Object storage：`MinIO/S3`

@@ -1,0 +1,256 @@
+openapi: 3.1.0
+info:
+  title: AI Service Contract V1
+  version: 1.0.0
+  description: Policy-controlled AI APIs frozen by Contract Package V1.
+servers:
+  - url: https://api.example.internal
+security:
+  - bearerAuth: []
+paths:
+  /v1/ai/reply-suggestions:
+    post:
+      operationId: getReplySuggestion
+      summary: Get an AI reply suggestion for a tenant-scoped conversation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiSuggestionRequest'
+      responses:
+        '200':
+          description: Suggestion produced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiSuggestionResponse'
+        '409':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/ai/decisions:execute:
+    post:
+      operationId: executeAiDecision
+      summary: Execute an AI decision that may involve tools or fixed assets.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AiExecuteRequest'
+      responses:
+        '200':
+          description: Execution decision recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiExecuteResponse'
+        '403':
+          $ref: '#/components/responses/ErrorResponse'
+        '409':
+          $ref: '#/components/responses/ErrorResponse'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/ai/policies/current:
+    get:
+      operationId: getCurrentAiPolicySnapshot
+      summary: Get the published AI policy snapshot for the current tenant.
+      responses:
+        '200':
+          description: Published snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiPolicySnapshot'
+        '503':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/ai/audit-records:
+    get:
+      operationId: listAiAuditRecords
+      summary: List AI audit records.
+      parameters:
+        - name: conversation_id
+          in: query
+          schema:
+            type: string
+        - name: mode
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Audit page.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AiAuditRecord'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    ErrorResponse:
+      description: Standard error envelope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [code, message, category, retryable, correlation_id]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        category:
+          type: string
+        retryable:
+          type: boolean
+        correlation_id:
+          type: string
+    AssetChoice:
+      type: object
+      properties:
+        asset_id:
+          type: string
+        asset_type:
+          type: string
+    ToolCall:
+      type: object
+      required: [tool_name, execution_mode, result_status]
+      properties:
+        tool_name:
+          type: string
+        execution_mode:
+          type: string
+          enum: [ReadOnly, LowRiskMutating, HighRiskMutating]
+        idempotency_key:
+          type: string
+        result_status:
+          type: string
+          enum: [succeeded, failed, blocked]
+    AiSuggestionRequest:
+      type: object
+      required: [conversation_id, mode]
+      properties:
+        conversation_id:
+          type: string
+        mode:
+          type: string
+          enum: [SuggestOnly, Copilot, Autopilot, EscalationOnly]
+        include_images:
+          type: boolean
+        latest_customer_message_type:
+          type: string
+          enum: [text, image, video]
+    AiSuggestionResponse:
+      type: object
+      required: [decision, fallback_reason]
+      properties:
+        decision:
+          type: string
+          enum: [reply_text, choose_asset, escalate_to_human, no_answer]
+        reply_text:
+          type: string
+        asset_choice:
+          $ref: '#/components/schemas/AssetChoice'
+        fallback_reason:
+          type: string
+    AiExecuteRequest:
+      type: object
+      required: [conversation_id, mode]
+      properties:
+        conversation_id:
+          type: string
+        mode:
+          type: string
+        requested_tool:
+          type: string
+        requested_asset_id:
+          type: string
+    AiExecuteResponse:
+      type: object
+      required: [audit_id, execution_status, fallback_reason]
+      properties:
+        audit_id:
+          type: string
+        execution_status:
+          type: string
+          enum: [executed, blocked, escalated]
+        execution_mode:
+          type: string
+        idempotency_key:
+          type: string
+        precondition_status:
+          type: string
+        fallback_reason:
+          type: string
+        tool_calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolCall'
+        asset_choice:
+          $ref: '#/components/schemas/AssetChoice'
+    AiPolicySnapshot:
+      type: object
+      required: [policy_version, prompt_version, mode_defaults]
+      properties:
+        policy_version:
+          type: string
+        prompt_version:
+          type: string
+        mode_defaults:
+          type: object
+          additionalProperties:
+            type: string
+    AiAuditRecord:
+      type: object
+      required:
+        - audit_id
+        - conversation_id
+        - mode
+        - policy_version
+        - prompt_version
+        - model_name
+        - confidence
+        - fallback_reason
+      properties:
+        audit_id:
+          type: string
+        conversation_id:
+          type: string
+        mode:
+          type: string
+        policy_version:
+          type: string
+        prompt_version:
+          type: string
+        model_name:
+          type: string
+        confidence:
+          type: number
+        fallback_reason:
+          type: string
+        tool_calls:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolCall'
+        asset_choice:
+          $ref: '#/components/schemas/AssetChoice'

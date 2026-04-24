@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://customerservice.local/docs/api/contract-package-v1/schemas/shared-types.schema.json",
+  "title": "Shared Types",
+  "description": "Shared contract types frozen by Contract Package V1.",
+  "examples": [
+    {
+      "tenant": {
+        "tenant_id": "tenant-a",
+        "resolution_source": "token"
+      },
+      "actor": {
+        "actor_id": "agent-001",
+        "actor_type": "agent",
+        "display_name": "Alice"
+      },
+      "conversation": {
+        "conversation_id": "conv-1001",
+        "channel": "wechat_customer_service",
+        "queue_id": "after_sales",
+        "mode": "Human",
+        "assignment_id": "asn-2001",
+        "last_message_sequence": 91
+      }
+    }
+  ],
+  "$defs": {
+    "TenantContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tenant_id",
+        "resolution_source"
+      ],
+      "properties": {
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resolution_source": {
+          "type": "string",
+          "enum": [
+            "token",
+            "channel_binding",
+            "internal_event",
+            "platform_admin_scope"
+          ]
+        },
+        "tenant_display_name": {
+          "type": "string"
+        }
+      }
+    },
+    "UserContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "actor_id",
+        "actor_type"
+      ],
+      "properties": {
+        "actor_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor_type": {
+          "type": "string",
+          "enum": [
+            "agent",
+            "supervisor",
+            "qa",
+            "tenant_admin",
+            "platform_admin",
+            "system"
+          ]
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ConversationContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "conversation_id",
+        "channel",
+        "mode"
+      ],
+      "properties": {
+        "conversation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "type": "string"
+        },
+        "queue_id": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "Human",
+            "Copilot",
+            "Autopilot",
+            "Assist",
+            "HandoffPending"
+          ]
+        },
+        "assignment_id": {
+          "type": "string"
+        },
+        "last_message_sequence": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "AttachmentRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "media_object_id",
+        "media_type"
+      ],
+      "properties": {
+        "media_object_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "media_type": {
+          "type": "string",
+          "enum": [
+            "image",
+            "video",
+            "file"
+          ]
+        },
+        "preview_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "thumbnail_url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    },
+    "AssetItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "tenant_id",
+        "asset_type",
+        "review_status",
+        "version"
+      ],
+      "properties": {
+        "asset_id": {
+          "type": "string"
+        },
+        "tenant_id": {
+          "type": "string"
+        },
+        "asset_type": {
+          "type": "string",
+          "enum": [
+            "image",
+            "video",
+            "link_card"
+          ]
+        },
+        "business_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "channel_support": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "review_status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "review",
+            "approved",
+            "rejected"
+          ]
+        },
+        "effective_from": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "effective_to": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "MessageEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "message_id",
+        "sequence",
+        "sender_type",
+        "message_type",
+        "occurred_at"
+      ],
+      "properties": {
+        "message_id": {
+          "type": "string"
+        },
+        "sequence": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sender_type": {
+          "type": "string",
+          "enum": [
+            "customer",
+            "agent",
+            "ai",
+            "system"
+          ]
+        },
+        "message_type": {
+          "type": "string",
+          "enum": [
+            "text",
+            "image",
+            "video",
+            "system",
+            "asset",
+            "link_card"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "attachment_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AttachmentRef"
+          }
+        }
+      }
+    },
+    "AiDecisionContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "conversation"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "SuggestOnly",
+            "Copilot",
+            "Autopilot",
+            "EscalationOnly"
+          ]
+        },
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "conversation": {
+          "$ref": "#/$defs/ConversationContext"
+        },
+        "knowledge_release_id": {
+          "type": "string"
+        }
+      }
+    },
+    "AuditEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "audit_id",
+        "tenant_id",
+        "correlation_id",
+        "created_at"
+      ],
+      "properties": {
+        "audit_id": {
+          "type": "string"
+        },
+        "tenant_id": {
+          "type": "string"
+        },
+        "correlation_id": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "actor": {
+          "$ref": "#/$defs/UserContext"
+        }
+      }
+    }
+  }
+}

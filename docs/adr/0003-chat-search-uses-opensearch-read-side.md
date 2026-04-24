@@ -1,17 +1,17 @@
-# ADR 0003: Use OpenSearch For Chat History Search Read-Side
+# ADR 0003：使用 OpenSearch 承载聊天搜索读侧
 
-## Status
-Accepted
+## Status（状态）
+Accepted（已接受）
 
-## Context
-The workbench requires fast tenant-safe search with highlight, filtering, autocomplete, and 1-year online search retention. PostgreSQL remains the transactional source of truth.
+## Context（背景）
+工作台（workbench）需要 fast、tenant-safe 的 search，并支持 highlight、filtering、autocomplete 和 1 年在线保留。PostgreSQL 仍然是 transactional source of truth。
 
-## Decision
-- Introduce `search-service` backed by OpenSearch for chat history search.
-- Keep PostgreSQL FTS only for low-frequency operational fallback and targeted admin usage.
-- Search data is projected asynchronously from domain events.
+## Decision（决策）
+- 引入由 OpenSearch 支撑的 `search-service`，专门负责 chat history search。
+- PostgreSQL FTS 只保留给低频运维兜底（operational fallback）和有针对性的 admin usage。
+- Search data 通过 domain events 异步投影（project）出来。
 
-## Consequences
-- Search becomes eventually consistent.
-- OpenSearch outages return explicit degraded-search errors instead of silent SQL scans.
-- Search index schema and retention policy become first-class design artifacts.
+## Consequences（影响）
+- Search 会变成 eventually consistent（最终一致）。
+- OpenSearch 故障时返回 explicit degraded-search errors，而不是静默 SQL 扫描。
+- Search index schema 和 retention policy 升格为一等设计资产。

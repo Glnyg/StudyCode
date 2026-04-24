@@ -1,0 +1,101 @@
+openapi: 3.1.0
+info:
+  title: Edge Boundary Contract V1
+  version: 1.0.0
+  description: Minimal api-gateway and realtime-gateway boundary frozen by Contract Package V1.
+servers:
+  - url: https://api.example.internal
+security:
+  - bearerAuth: []
+paths:
+  /v1/realtime/bootstrap:
+    get:
+      operationId: getRealtimeBootstrap
+      summary: Bootstrap SignalR connection and replay contract for the current tenant-scoped operator.
+      parameters:
+        - name: X-Correlation-Id
+          in: header
+          schema:
+            type: string
+        - name: traceparent
+          in: header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Realtime bootstrap payload.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - hub_url
+                  - tenant_id
+                  - supported_client_methods
+                  - supported_server_events
+                  - replay_contract
+                properties:
+                  hub_url:
+                    type: string
+                    format: uri
+                  tenant_id:
+                    type: string
+                  supported_client_methods:
+                    type: array
+                    items:
+                      type: string
+                  supported_server_events:
+                    type: array
+                    items:
+                      type: string
+                  replay_contract:
+                    type: object
+                    required:
+                      - key
+                      - request_method
+                    properties:
+                      key:
+                        const: last_seen_sequence
+                      request_method:
+                        const: ReplayConversationFromSequence
+              example:
+                hub_url: https://rt.example.internal/hubs/workbench
+                tenant_id: tenant-a
+                supported_client_methods:
+                  - SubscribeConversation
+                  - AckConversationPosition
+                  - ReplayConversationFromSequence
+                supported_server_events:
+                  - ConversationMessageCommitted
+                  - ConversationStateChanged
+                  - ConversationAssignmentChanged
+                replay_contract:
+                  key: last_seen_sequence
+                  request_method: ReplayConversationFromSequence
+        '401':
+          $ref: '#/components/responses/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    ErrorResponse:
+      description: Standard error envelope.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code, message, category, retryable, correlation_id]
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+              category:
+                type: string
+              retryable:
+                type: boolean
+              correlation_id:
+                type: string

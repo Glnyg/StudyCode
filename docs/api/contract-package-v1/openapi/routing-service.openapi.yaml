@@ -1,0 +1,472 @@
+openapi: 3.1.0
+info:
+  title: Routing Service Contract V1
+  version: 1.0.0
+  description: Queue, assignment, transfer, presence, urgent intervention, and response-timeout APIs.
+servers:
+  - url: https://api.example.internal
+security:
+  - bearerAuth: []
+tags:
+  - name: routing
+paths:
+  /v1/queues:
+    get:
+      tags: [routing]
+      operationId: listQueues
+      summary: List tenant-scoped queues.
+      responses:
+        '200':
+          description: Queue page.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QueueItem'
+  /v1/conversations/{conversation_id}:assign:
+    post:
+      tags: [routing]
+      operationId: assignConversation
+      summary: Assign a conversation to a human agent.
+      parameters:
+        - $ref: '#/components/parameters/ConversationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [agent_id, queue_id]
+              properties:
+                agent_id:
+                  type: string
+                queue_id:
+                  type: string
+      responses:
+        '200':
+          description: Assignment created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignment'
+        '409':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/conversations/{conversation_id}:transfer:
+    post:
+      tags: [routing]
+      operationId: transferConversation
+      summary: Transfer a conversation to another queue or agent.
+      parameters:
+        - $ref: '#/components/parameters/ConversationId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [to_queue_id]
+              properties:
+                to_queue_id:
+                  type: string
+                to_agent_id:
+                  type: string
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Transfer completed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transfer'
+        '409':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/agents/{agent_id}/presence:
+    put:
+      tags: [routing]
+      operationId: updateAgentPresence
+      summary: Update agent presence for the current tenant.
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [online, busy, offline]
+      responses:
+        '200':
+          description: Presence updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentPresence'
+  /v1/intervention-rules:
+    get:
+      tags: [routing]
+      operationId: listInterventionRules
+      summary: List urgent intervention rules.
+      responses:
+        '200':
+          description: Intervention rule page.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InterventionRule'
+  /v1/intervention-rules/{rule_id}:
+    put:
+      tags: [routing]
+      operationId: upsertInterventionRule
+      summary: Upsert a versioned intervention rule.
+      parameters:
+        - name: rule_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterventionRule'
+      responses:
+        '200':
+          description: Rule saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterventionRule'
+        '409':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/response-timeout-policies:
+    get:
+      tags: [routing]
+      operationId: listResponseTimeoutPolicies
+      summary: List response-timeout policies.
+      responses:
+        '200':
+          description: Policy page.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ResponseTimeoutPolicy'
+  /v1/response-timeout-policies/{policy_id}:
+    put:
+      tags: [routing]
+      operationId: upsertResponseTimeoutPolicy
+      summary: Upsert a versioned response-timeout policy.
+      parameters:
+        - name: policy_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResponseTimeoutPolicy'
+      responses:
+        '200':
+          description: Policy saved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseTimeoutPolicy'
+        '409':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/urgent-interventions:
+    get:
+      tags: [routing]
+      operationId: listUrgentInterventions
+      summary: List urgent interventions.
+      responses:
+        '200':
+          description: Intervention page.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UrgentIntervention'
+  /v1/urgent-interventions/{intervention_id}:acknowledge:
+    post:
+      tags: [routing]
+      operationId: acknowledgeIntervention
+      summary: Acknowledge an urgent intervention.
+      parameters:
+        - name: intervention_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Intervention acknowledged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrgentIntervention'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
+  /v1/urgent-interventions/{intervention_id}:resolve:
+    post:
+      tags: [routing]
+      operationId: resolveIntervention
+      summary: Resolve an urgent intervention.
+      parameters:
+        - name: intervention_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Intervention resolved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrgentIntervention'
+  /v1/response-timeout-alerts:
+    get:
+      tags: [routing]
+      operationId: listResponseTimeoutAlerts
+      summary: List response-timeout alerts.
+      responses:
+        '200':
+          description: Alert page.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ResponseTimeoutAlert'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ConversationId:
+      name: conversation_id
+      in: path
+      required: true
+      schema:
+        type: string
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      schema:
+        type: string
+  responses:
+    ErrorResponse:
+      description: Standard error envelope.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    ErrorEnvelope:
+      type: object
+      required: [code, message, category, retryable, correlation_id]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        category:
+          type: string
+        retryable:
+          type: boolean
+        correlation_id:
+          type: string
+    QueueItem:
+      type: object
+      required: [queue_id, display_name]
+      properties:
+        queue_id:
+          type: string
+        display_name:
+          type: string
+        enabled:
+          type: boolean
+    Assignment:
+      type: object
+      required: [assignment_id, conversation_id, agent_id, queue_id, assigned_at]
+      properties:
+        assignment_id:
+          type: string
+        conversation_id:
+          type: string
+        agent_id:
+          type: string
+        queue_id:
+          type: string
+        assigned_at:
+          type: string
+          format: date-time
+    Transfer:
+      type: object
+      required: [transfer_id, conversation_id, to_queue_id, effective_at]
+      properties:
+        transfer_id:
+          type: string
+        conversation_id:
+          type: string
+        to_queue_id:
+          type: string
+        to_agent_id:
+          type: string
+        effective_at:
+          type: string
+          format: date-time
+    AgentPresence:
+      type: object
+      required: [agent_id, status, changed_at]
+      properties:
+        agent_id:
+          type: string
+        status:
+          type: string
+        changed_at:
+          type: string
+          format: date-time
+    InterventionRule:
+      type: object
+      required: [rule_id, name, enabled, severity, match_operator, terms, version]
+      properties:
+        rule_id:
+          type: string
+        name:
+          type: string
+        enabled:
+          type: boolean
+        severity:
+          type: string
+        match_operator:
+          type: string
+          enum: [contains_any, contains_all]
+        terms:
+          type: array
+          items:
+            type: string
+        channel_scope:
+          type: array
+          items:
+            type: string
+        queue_scope:
+          type: array
+          items:
+            type: string
+        cooldown_window:
+          type: string
+        version:
+          type: integer
+    ResponseTimeoutPolicy:
+      type: object
+      required: [policy_id, enabled, timeout_minutes, version]
+      properties:
+        policy_id:
+          type: string
+        enabled:
+          type: boolean
+        queue_scope:
+          type: string
+        timeout_minutes:
+          type: integer
+        notify_policy_id:
+          type: string
+        version:
+          type: integer
+    UrgentIntervention:
+      type: object
+      required: [intervention_id, conversation_id, severity, status, triggered_at]
+      properties:
+        intervention_id:
+          type: string
+        conversation_id:
+          type: string
+        severity:
+          type: string
+        matched_terms:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+        triggered_at:
+          type: string
+          format: date-time
+        acked_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+    ResponseTimeoutAlert:
+      type: object
+      required: [alert_id, conversation_id, assignment_id, status, due_at]
+      properties:
+        alert_id:
+          type: string
+        conversation_id:
+          type: string
+        assignment_id:
+          type: string
+        agent_id:
+          type: string
+        queue_id:
+          type: string
+        status:
+          type: string
+        due_at:
+          type: string
+          format: date-time

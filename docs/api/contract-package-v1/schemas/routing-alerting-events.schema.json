@@ -1,0 +1,574 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://customerservice.local/docs/api/contract-package-v1/schemas/routing-alerting-events.schema.json",
+  "title": "Routing And Alerting Events",
+  "examples": [
+    {
+      "event_id": "evt-rta-001",
+      "event_type": "ResponseTimeoutAlertTriggered",
+      "tenant_id": "tenant-a",
+      "occurred_at": "2026-04-24T09:20:16Z",
+      "correlation_id": "corr-001",
+      "producer": "routing-service",
+      "payload_version": 1,
+      "payload": {
+        "alert_id": "rta-1001",
+        "conversation_id": "conv-1001",
+        "waiting_message_id": "msg-9001",
+        "assignment_id": "asn-2001",
+        "agent_id": "agent-001",
+        "queue_id": "after_sales",
+        "policy_id": "resp-after-sales",
+        "waiting_started_at": "2026-04-24T09:10:11Z",
+        "due_at": "2026-04-24T09:20:11Z",
+        "triggered_at": "2026-04-24T09:20:16Z"
+      }
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/ConversationAssigned"
+    },
+    {
+      "$ref": "#/$defs/TransferCompleted"
+    },
+    {
+      "$ref": "#/$defs/AgentPresenceChanged"
+    },
+    {
+      "$ref": "#/$defs/AiHandoffChanged"
+    },
+    {
+      "$ref": "#/$defs/UrgentInterventionTriggered"
+    },
+    {
+      "$ref": "#/$defs/UrgentInterventionAcknowledged"
+    },
+    {
+      "$ref": "#/$defs/ResponseTimeoutAlertTriggered"
+    },
+    {
+      "$ref": "#/$defs/ResponseTimeoutAlertCleared"
+    },
+    {
+      "$ref": "#/$defs/ManagementNotificationDispatched"
+    }
+  ],
+  "$defs": {
+    "EnvelopeBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "event_type",
+        "tenant_id",
+        "occurred_at",
+        "correlation_id",
+        "producer",
+        "payload_version",
+        "payload"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string"
+        },
+        "event_type": {
+          "type": "string"
+        },
+        "tenant_id": {
+          "type": "string"
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "correlation_id": {
+          "type": "string"
+        },
+        "producer": {
+          "const": "routing-service"
+        },
+        "payload_version": {
+          "const": 1
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    },
+    "ConversationAssigned": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "ConversationAssigned"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "conversation_id",
+                "assignment_id",
+                "agent_id",
+                "queue_id",
+                "assigned_at"
+              ],
+              "properties": {
+                "conversation_id": {
+                  "type": "string"
+                },
+                "assignment_id": {
+                  "type": "string"
+                },
+                "agent_id": {
+                  "type": "string"
+                },
+                "queue_id": {
+                  "type": "string"
+                },
+                "assigned_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "previous_agent_id": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "TransferCompleted": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "TransferCompleted"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "conversation_id",
+                "transfer_id",
+                "from_queue_id",
+                "to_queue_id",
+                "effective_at"
+              ],
+              "properties": {
+                "conversation_id": {
+                  "type": "string"
+                },
+                "transfer_id": {
+                  "type": "string"
+                },
+                "from_agent_id": {
+                  "type": "string"
+                },
+                "to_agent_id": {
+                  "type": "string"
+                },
+                "from_queue_id": {
+                  "type": "string"
+                },
+                "to_queue_id": {
+                  "type": "string"
+                },
+                "effective_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AgentPresenceChanged": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "AgentPresenceChanged"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "agent_id",
+                "previous_status",
+                "current_status",
+                "changed_at"
+              ],
+              "properties": {
+                "agent_id": {
+                  "type": "string"
+                },
+                "previous_status": {
+                  "type": "string"
+                },
+                "current_status": {
+                  "type": "string"
+                },
+                "changed_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "AiHandoffChanged": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "AiHandoffChanged"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "conversation_id",
+                "previous_mode",
+                "current_mode",
+                "changed_at"
+              ],
+              "properties": {
+                "conversation_id": {
+                  "type": "string"
+                },
+                "previous_mode": {
+                  "type": "string"
+                },
+                "current_mode": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                },
+                "changed_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "UrgentInterventionTriggered": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "UrgentInterventionTriggered"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "intervention_id",
+                "conversation_id",
+                "trigger_message_id",
+                "rule_id",
+                "severity",
+                "matched_terms",
+                "channel",
+                "queue_id",
+                "enrichment_status"
+              ],
+              "properties": {
+                "intervention_id": {
+                  "type": "string"
+                },
+                "conversation_id": {
+                  "type": "string"
+                },
+                "trigger_message_id": {
+                  "type": "string"
+                },
+                "rule_id": {
+                  "type": "string"
+                },
+                "severity": {
+                  "type": "string"
+                },
+                "matched_terms": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "channel": {
+                  "type": "string"
+                },
+                "queue_id": {
+                  "type": "string"
+                },
+                "device_id": {
+                  "type": "string"
+                },
+                "enrichment_status": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "UrgentInterventionAcknowledged": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "UrgentInterventionAcknowledged"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "intervention_id",
+                "ack_actor_id",
+                "acked_at"
+              ],
+              "properties": {
+                "intervention_id": {
+                  "type": "string"
+                },
+                "ack_actor_id": {
+                  "type": "string"
+                },
+                "acked_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "status": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ResponseTimeoutAlertTriggered": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "ResponseTimeoutAlertTriggered"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "alert_id",
+                "conversation_id",
+                "waiting_message_id",
+                "assignment_id",
+                "agent_id",
+                "queue_id",
+                "policy_id",
+                "waiting_started_at",
+                "due_at",
+                "triggered_at"
+              ],
+              "properties": {
+                "alert_id": {
+                  "type": "string"
+                },
+                "conversation_id": {
+                  "type": "string"
+                },
+                "waiting_message_id": {
+                  "type": "string"
+                },
+                "assignment_id": {
+                  "type": "string"
+                },
+                "agent_id": {
+                  "type": "string"
+                },
+                "queue_id": {
+                  "type": "string"
+                },
+                "policy_id": {
+                  "type": "string"
+                },
+                "waiting_started_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "due_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "triggered_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "device_id": {
+                  "type": "string"
+                },
+                "enrichment_status": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "example": {
+            "event_id": "evt-rta-001",
+            "event_type": "ResponseTimeoutAlertTriggered",
+            "tenant_id": "tenant-a",
+            "occurred_at": "2026-04-24T09:20:16Z",
+            "correlation_id": "corr-001",
+            "producer": "routing-service",
+            "payload_version": 1,
+            "payload": {
+              "alert_id": "rta-1001",
+              "conversation_id": "conv-1001",
+              "waiting_message_id": "msg-9001",
+              "assignment_id": "asn-2001",
+              "agent_id": "agent-001",
+              "queue_id": "after_sales",
+              "policy_id": "resp-after-sales",
+              "waiting_started_at": "2026-04-24T09:10:11Z",
+              "due_at": "2026-04-24T09:20:11Z",
+              "triggered_at": "2026-04-24T09:20:16Z",
+              "device_id": "wifi-001",
+              "enrichment_status": "resolved"
+            }
+          }
+        }
+      ]
+    },
+    "ResponseTimeoutAlertCleared": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "ResponseTimeoutAlertCleared"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "alert_id",
+                "conversation_id",
+                "waiting_message_id",
+                "assignment_id",
+                "cleared_at",
+                "clear_reason"
+              ],
+              "properties": {
+                "alert_id": {
+                  "type": "string"
+                },
+                "conversation_id": {
+                  "type": "string"
+                },
+                "waiting_message_id": {
+                  "type": "string"
+                },
+                "assignment_id": {
+                  "type": "string"
+                },
+                "cleared_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "clear_reason": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ManagementNotificationDispatched": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/EnvelopeBase"
+        },
+        {
+          "properties": {
+            "event_type": {
+              "const": "ManagementNotificationDispatched"
+            },
+            "payload": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "delivery_id",
+                "endpoint_id",
+                "status",
+                "dispatched_at"
+              ],
+              "properties": {
+                "delivery_id": {
+                  "type": "string"
+                },
+                "endpoint_id": {
+                  "type": "string"
+                },
+                "provider_type": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "dispatched_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "source_type": {
+                  "type": "string",
+                  "enum": [
+                    "urgent_intervention",
+                    "response_timeout"
+                  ]
+                },
+                "source_id": {
+                  "type": "string"
+                },
+                "enrichment_status": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
