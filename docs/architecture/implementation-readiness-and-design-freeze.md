@@ -42,6 +42,9 @@
 ## What Is Still Missing Before Real Coding（真正编码前仍缺的内容）
 剩余缺口属于 implementation-freeze items（实现冻结项），不是 architecture-direction items（架构方向争论）。
 
+如果你想直接按执行视角检查 blocker（阻塞项）和 freeze package（冻结包），请同时查看：
+- [implementation-freeze-checklist.md](./implementation-freeze-checklist.md)
+
 当前已冻结完成、无需再阻塞后续 slice 的项：
 - `Contract Package V1`
 - `Tenant Resolution And Authorization V1`

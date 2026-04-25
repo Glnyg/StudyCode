@@ -20,6 +20,8 @@
 - `architecture/system-overview.md`：系统目标、运行模型（operating model）和顶层架构。
 - `architecture/service-boundaries-and-runtime-topology.md`：service ownership（服务归属）、runtime lanes（运行时通道）和 hot-path rules（热路径规则）。
 - `architecture/implementation-readiness-and-design-freeze.md`：哪些内容已经 freeze（冻结）、哪些内容仍然阻塞 coding（编码）、推荐交付顺序是什么。
+- `architecture/implementation-freeze-checklist.md`：把实现前仍需冻结的事项整理成可执行 checklist（清单），用于 readiness review（就绪评审）。
+- `architecture/issues/README.md`：把待冻结事项拆成可单独跟踪的 issue 文档，方便直接复制到 GitHub issue 或内部任务系统。
 - `architecture/implementation-style-pragmatic-ddd-workflow-first.md`：官方实现风格，说明 DDD/CQRS 在哪里适用，哪里应该 workflow-first。
 - `domain/multi-tenant-and-domain-model.md`：tenant model、identity、conversation lifecycle、routing、media、asset boundaries。
 - `domain/tenant-resolution-and-authorization-v1.md`：trusted tenant resolution、single-tenant operator token、RBAC matrix、`platform_admin` 边界，以及 operator/public HTTP 的真实状态码与错误 / 审计语义。
