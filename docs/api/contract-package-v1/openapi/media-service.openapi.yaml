@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Media Service Contract V1
   version: 1.0.0
-  description: Tenant-scoped fixed asset management APIs.
+  description: Tenant-scoped fixed asset management APIs. Tenant scope is always resolved from a single-tenant bearer token session; clients must not send tenant_id in headers, query, or body. Errors return real non-2xx HTTP status codes plus a JSON error envelope; these surfaces do not use outer 200 wrappers, and GET operations do not accept request bodies.
 servers:
   - url: https://api.example.internal
 security:
@@ -12,6 +12,8 @@ paths:
     post:
       operationId: uploadAsset
       summary: Upload a fixed outbound asset.
+      x-required-permissions:
+        - media.asset.write
       parameters:
         - name: Idempotency-Key
           in: header
@@ -31,11 +33,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetItem'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ErrorResponse'
     get:
       operationId: listAssets
       summary: List tenant-scoped assets.
+      x-required-permissions:
+        - media.asset.read
       parameters:
         - name: asset_type
           in: query
@@ -58,10 +68,18 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/AssetItem'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
   /v1/assets/{asset_id}:review:
     post:
       operationId: reviewAsset
       summary: Move an asset through review workflow.
+      x-required-permissions:
+        - media.review
       parameters:
         - name: asset_id
           in: path
@@ -79,6 +97,7 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required: [target_status]
               properties:
                 target_status:
@@ -93,12 +112,22 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetItem'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
         '409':
           $ref: '#/components/responses/ErrorResponse'
   /v1/assets/{asset_id}:preview-url:
     post:
       operationId: createAssetPreviewUrl
       summary: Create a short-lived preview URL for a tenant asset.
+      x-required-permissions:
+        - media.asset.read
       parameters:
         - name: asset_id
           in: path
@@ -122,6 +151,12 @@ paths:
                   expires_at:
                     type: string
                     format: date-time
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/ErrorResponse'
 components:
@@ -130,9 +165,36 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Single-tenant operator session token. Required claims are sub, tenant_id, actor_type, role, permissions, and session_id. Platform-admin flows must use explicit admin surfaces instead of these tenant-scoped endpoints.
   responses:
+    UnauthorizedError:
+      description: Identity is missing, expired, or cannot be verified before a trusted tenant context is created.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            code: gateway.identity_invalid
+            message: Bearer token is missing or invalid.
+            category: auth
+            error_source: gateway
+            retryable: false
+            correlation_id: corr-001
+    ForbiddenError:
+      description: Identity is valid, but tenant scope, permissions, or admin-surface rules reject the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            code: media.permission_denied
+            message: The resolved actor cannot access this media surface.
+            category: authorization
+            error_source: system
+            retryable: false
+            correlation_id: corr-001
     ErrorResponse:
-      description: Standard error envelope.
+      description: Standard error envelope used with real HTTP status codes.
       content:
         application/json:
           schema:
@@ -140,7 +202,7 @@ components:
   schemas:
     ErrorEnvelope:
       type: object
-      required: [code, message, category, retryable, correlation_id]
+      required: [code, message, category, error_source, retryable, correlation_id]
       properties:
         code:
           type: string
@@ -148,12 +210,16 @@ components:
           type: string
         category:
           type: string
+        error_source:
+          type: string
+          enum: [gateway, system]
         retryable:
           type: boolean
         correlation_id:
           type: string
     AssetUploadRequest:
       type: object
+      additionalProperties: false
       required: [asset_type, source_object_key]
       properties:
         asset_type:
@@ -177,9 +243,11 @@ components:
           format: date-time
     AssetItem:
       type: object
-      required: [asset_id, asset_type, review_status, version]
+      required: [asset_id, tenant_id, asset_type, review_status, version]
       properties:
         asset_id:
+          type: string
+        tenant_id:
           type: string
         asset_type:
           type: string

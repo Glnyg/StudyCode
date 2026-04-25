@@ -2,12 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://customerservice.local/docs/api/contract-package-v1/schemas/error-envelope.schema.json",
   "title": "Error Envelope",
+  "description": "Operator/public HTTP APIs pair this envelope with real non-2xx HTTP status codes. Do not wrap it inside a 200 success payload.",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "code",
     "message",
     "category",
+    "error_source",
     "retryable",
     "correlation_id"
   ],
@@ -31,6 +33,14 @@
         "dependency",
         "policy",
         "internal"
+      ]
+    },
+    "error_source": {
+      "type": "string",
+      "description": "gateway = edge/gateway failure before the owning service decides; system = owning service, domain, dependency, or internal processing failure.",
+      "enum": [
+        "gateway",
+        "system"
       ]
     },
     "retryable": {
@@ -67,6 +77,7 @@
     "code": "search.degraded_unavailable",
     "message": "OpenSearch is currently unavailable for tenant-safe chat search.",
     "category": "degraded",
+    "error_source": "system",
     "retryable": true,
     "correlation_id": "corr-9a22",
     "details": {

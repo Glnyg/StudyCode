@@ -6,14 +6,17 @@
 ## 为什么重要
 - 你做的不是普通后台，而是真实的多企业租户客服系统。
 - 这一层决定哪些对象是业务真相，哪些能力必须[[幂等]]、可追踪、可回放，哪些能力只能做读侧。
+- 这一层也决定 tenant / permission / admin boundary 失败时该怎样落到 [[HTTP 状态码语义]] 和 [[Error Source]]。
 
 ## 建议先读
 1. [[多租户与客服域模型]]
-2. [[高风险关键词告警与紧急介入]]
-3. [[客服未回复超时告警]]
+2. [[租户解析与授权冻结包 V1]]
+3. [[高风险关键词告警与紧急介入]]
+4. [[客服未回复超时告警]]
 
 ## 对应正式文档
 - `docs/domain/multi-tenant-and-domain-model.md`
+- `docs/domain/tenant-resolution-and-authorization-v1.md`
 - `docs/domain/urgent-intervention-and-management-alerting.md`
 - `docs/domain/response-timeout-alerting.md`
 

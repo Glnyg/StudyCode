@@ -12,7 +12,13 @@
       "actor": {
         "actor_id": "agent-001",
         "actor_type": "agent",
-        "display_name": "Alice"
+        "role": "agent",
+        "display_name": "Alice",
+        "permissions": [
+          "conversation.read",
+          "conversation.reply"
+        ],
+        "session_id": "sess-001"
       },
       "conversation": {
         "conversation_id": "conv-1001",
@@ -21,6 +27,19 @@
         "mode": "Human",
         "assignment_id": "asn-2001",
         "last_message_sequence": 91
+      }
+    },
+    {
+      "operator_token_claims": {
+        "sub": "agent-001",
+        "tenant_id": "tenant-a",
+        "actor_type": "agent",
+        "role": "agent",
+        "permissions": [
+          "conversation.read",
+          "conversation.reply"
+        ],
+        "session_id": "sess-001"
       }
     }
   ],
@@ -74,14 +93,83 @@
             "system"
           ]
         },
+        "role": {
+          "type": "string",
+          "enum": [
+            "agent",
+            "supervisor",
+            "qa",
+            "tenant_admin",
+            "platform_admin",
+            "system"
+          ]
+        },
         "display_name": {
           "type": "string"
         },
         "permissions": {
           "type": "array",
+          "uniqueItems": true,
           "items": {
             "type": "string"
           }
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "OperatorTokenClaims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sub",
+        "tenant_id",
+        "actor_type",
+        "role",
+        "permissions",
+        "session_id"
+      ],
+      "properties": {
+        "sub": {
+          "type": "string",
+          "minLength": 1
+        },
+        "tenant_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actor_type": {
+          "type": "string",
+          "enum": [
+            "agent",
+            "supervisor",
+            "qa",
+            "tenant_admin",
+            "platform_admin"
+          ]
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "agent",
+            "supervisor",
+            "qa",
+            "tenant_admin",
+            "platform_admin"
+          ]
+        },
+        "permissions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "session_id": {
+          "type": "string",
+          "minLength": 1
         }
       }
     },
@@ -324,6 +412,12 @@
         },
         "actor": {
           "$ref": "#/$defs/UserContext"
+        },
+        "target_tenant_id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
         }
       }
     }

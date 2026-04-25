@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Edge Boundary Contract V1
   version: 1.0.0
-  description: Minimal api-gateway and realtime-gateway boundary frozen by Contract Package V1.
+  description: Minimal api-gateway and realtime-gateway boundary frozen by Contract Package V1. Realtime bootstrap is only available to tenant-scoped operator sessions, never to implicit tenant or platform-admin passthrough calls. Errors return real non-2xx HTTP status codes plus a JSON error envelope, and this GET surface does not accept a request body.
 servers:
   - url: https://api.example.internal
 security:
@@ -12,6 +12,8 @@ paths:
     get:
       operationId: getRealtimeBootstrap
       summary: Bootstrap SignalR connection and replay contract for the current tenant-scoped operator.
+      x-required-permissions:
+        - conversation.read
       parameters:
         - name: X-Correlation-Id
           in: header
@@ -40,6 +42,7 @@ paths:
                     format: uri
                   tenant_id:
                     type: string
+                    description: Server-resolved tenant_id derived from the single-tenant bearer token session.
                   supported_client_methods:
                     type: array
                     items:
@@ -72,22 +75,27 @@ paths:
                 replay_contract:
                   key: last_seen_sequence
                   request_method: ReplayConversationFromSequence
-        '401':
+        '400':
           $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Single-tenant operator session token. Required claims are sub, tenant_id, actor_type, role, permissions, and session_id. Platform-admin flows must use explicit admin surfaces instead of this tenant-scoped endpoint.
   responses:
-    ErrorResponse:
-      description: Standard error envelope.
+    UnauthorizedError:
+      description: Identity is missing, expired, or cannot be verified before a trusted tenant context is created.
       content:
         application/json:
           schema:
             type: object
-            required: [code, message, category, retryable, correlation_id]
+            required: [code, message, category, error_source, retryable, correlation_id]
             properties:
               code:
                 type: string
@@ -95,6 +103,65 @@ components:
                 type: string
               category:
                 type: string
+              error_source:
+                type: string
+                enum: [gateway, system]
+              retryable:
+                type: boolean
+              correlation_id:
+                type: string
+          example:
+            code: gateway.identity_invalid
+            message: Bearer token is missing or invalid.
+            category: auth
+            error_source: gateway
+            retryable: false
+            correlation_id: corr-001
+    ForbiddenError:
+      description: Identity is valid, but tenant scope, permissions, or admin-surface rules reject the request.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code, message, category, error_source, retryable, correlation_id]
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+              category:
+                type: string
+              error_source:
+                type: string
+                enum: [gateway, system]
+              retryable:
+                type: boolean
+              correlation_id:
+                type: string
+          example:
+            code: gateway.admin_surface_required
+            message: Platform-admin flows must use an explicit admin surface.
+            category: authorization
+            error_source: gateway
+            retryable: false
+            correlation_id: corr-001
+    ErrorResponse:
+      description: Standard error envelope used with real HTTP status codes.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code, message, category, error_source, retryable, correlation_id]
+            properties:
+              code:
+                type: string
+              message:
+                type: string
+              category:
+                type: string
+              error_source:
+                type: string
+                enum: [gateway, system]
               retryable:
                 type: boolean
               correlation_id:

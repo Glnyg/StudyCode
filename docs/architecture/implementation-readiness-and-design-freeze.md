@@ -32,35 +32,20 @@
 - chat search 是否需要 `OpenSearch`
 - 是否每个 service 都必须 full DDD / CQRS
 - V1 是否应该支持 AI hot path 中的视频理解
+- `Contract Package V1` 是否已经足够作为 HTTP / event contract baseline
+- `Tenant Resolution And Authorization V1` 是否还要继续靠聊天记忆临场发明
+- operator/public API 出错时到底该返回真实 HTTP status，还是 outer `200` + inner code
+- `GET` surface 是否允许 request body
 
 这些决策已经足够支撑 implementation planning（实现规划）。
 
 ## What Is Still Missing Before Real Coding（真正编码前仍缺的内容）
 剩余缺口属于 implementation-freeze items（实现冻结项），不是 architecture-direction items（架构方向争论）。
 
-### P0: Contract Package V1
-在 shared service scaffolding（共享服务脚手架）之前必须冻结。
-
-必需产物：
-- public HTTP APIs 的 OpenAPI specs
-- gRPC contracts 的 `proto` 文件
-- event schema files 与 compatibility rules
-- standard error catalog 与 error-code format
-- paging、idempotency、concurrency、trace-header conventions
-- operator console 与内部 service 调用的 request / response examples
-
-至少覆盖：
-- `conversation-service`
-- `routing-service`
-- `search-service`
-- `media-service`
-- `ai-service`
-- shared event envelope
-
-完成标准：
-- contracts 已经具体到足以生成 server/client stubs 或 DTOs
-- review 时可以发现 breaking changes
-- event 与 API examples 不再只是说明性 prose
+当前已冻结完成、无需再阻塞后续 slice 的项：
+- `Contract Package V1`
+- `Tenant Resolution And Authorization V1`
+- operator/public HTTP response strategy（真实 HTTP status + `code` + `error_source`，且 `GET` 不接受 request body）
 
 ### P0: PostgreSQL Detailed Schema V1
 在 domain implementation 与 migrations 之前必须冻结。
@@ -79,25 +64,6 @@
 完成标准：
 - 写 migrations 时不需要现场发明核心业务字段
 - replay、dedupe、audit 行为已经编码进 schema 规则，而不是靠聊天记忆
-
-### P0: Tenant Resolution And Authorization V1
-在 identity 与 gateway 工作之前必须冻结。
-
-必需产物：
-- 按入口类型区分的 trusted tenant-resolution rules：
-  - operator console
-  - Enterprise WeChat webhook
-  - internal event
-- token claims shape
-- tenant-scoped RBAC permission matrix
-- platform-admin boundary rules
-- privileged operations 的 audit requirements
-- forbidden implicit-tenant patterns
-
-完成标准：
-- 每条 request path 都只有一个 trusted tenant-resolution rule
-- 没有 service 需要从 optional client input 猜 tenant
-- authorization 可以开始做，而不需要每个模块重新定义 roles
 
 ### P0: Upstream Integration Specs V1
 在 `channel-service` 与 `device-service` 之前必须冻结。
@@ -176,16 +142,17 @@
 - provider retry 与 dead-letter runbook
 
 ## Recommended Delivery Order（推荐交付顺序）
-1. 冻结 shared contracts 与 repository baseline。
-2. 冻结 tenant resolution 与 authorization model。
+1. 冻结 `PostgreSQL Detailed Schema V1`。
+2. 冻结 `Engineering Baseline V1`。
 3. 实现 `conversation-service` 的 source-of-truth core 加 outbox。
 4. 实现 `routing-service` 与 `realtime-gateway`。
-5. 实现 `channel-service` 的 inbound / outbound adapters。
-6. 实现 `search-service` 的 projection 与 query path。
-7. 实现 `media-service` 与 asset governance。
-8. 实现 `knowledge-service` 与 `ai-service`。
-9. 实现 `analytics-service`。
-10. 强化平台交付、故障演练与生产运维。
+5. 在实现 `channel-service` 之前冻结 `Upstream Integration Specs V1`。
+6. 实现 `channel-service` 的 inbound / outbound adapters。
+7. 实现 `search-service` 的 projection 与 query path。
+8. 实现 `media-service` 与 asset governance。
+9. 实现 `knowledge-service` 与 `ai-service`。
+10. 实现 `analytics-service`。
+11. 强化平台交付、故障演练与生产运维。
 
 ## Definition Of Ready For Coding（编码就绪定义）
 只有以下条件全部满足，才允许开始 coding：

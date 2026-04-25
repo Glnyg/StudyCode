@@ -6,18 +6,22 @@
   - authenticated operator token（已认证操作员令牌）
   - verified channel binding（已验证渠道绑定）
   - trusted internal event envelope（可信内部事件信封）
+- `TenantContext` 的正式冻结形状与 trusted resolution 规则见 `tenant-resolution-and-authorization-v1.md`。
 - 缺少 tenant context 属于 hard failure（硬失败）。
 - 生产环境不存在 `default tenant`。
 
 ## Identity And Roles（身份与角色）
 - V1 的认证模型（authentication model）采用本地账号 + tenant-scoped RBAC（租户作用域角色权限）。
+- operator console 使用 single-tenant session token（单租户会话令牌）；普通 operator surface 不允许客户端自报 `tenant_id`。
 - 核心角色（core roles）包括：
   - `agent`
   - `supervisor`
   - `qa`
   - `tenant_admin`
   - `platform_admin`
+- 角色只定义默认边界；真正授权判断以 explicit permission strings（显式权限字符串）为准。
 - `platform_admin` 的操作必须显式建模，并单独写入审计（audit）。
+- `platform_admin` 不复用 tenant-scoped operator APIs，详细边界见 `tenant-resolution-and-authorization-v1.md`。
 
 ## Conversation Model（会话模型）
 - 核心聚合（core aggregates）包括：

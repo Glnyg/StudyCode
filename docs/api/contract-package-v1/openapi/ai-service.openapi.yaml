@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: AI Service Contract V1
   version: 1.0.0
-  description: Policy-controlled AI APIs frozen by Contract Package V1.
+  description: Policy-controlled AI APIs frozen by Contract Package V1. These tenant-scoped operator surfaces are read / execute only; publish and rollback writes remain separate configuration surfaces. Errors return real non-2xx HTTP status codes plus a JSON error envelope; these surfaces do not use outer 200 wrappers, and GET operations do not accept request bodies.
 servers:
   - url: https://api.example.internal
 security:
@@ -12,6 +12,8 @@ paths:
     post:
       operationId: getReplySuggestion
       summary: Get an AI reply suggestion for a tenant-scoped conversation.
+      x-required-permissions:
+        - ai.suggestion.read
       requestBody:
         required: true
         content:
@@ -25,6 +27,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AiSuggestionResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ErrorResponse'
         '503':
@@ -33,6 +41,8 @@ paths:
     post:
       operationId: executeAiDecision
       summary: Execute an AI decision that may involve tools or fixed assets.
+      x-required-permissions:
+        - ai.decision.execute
       parameters:
         - name: Idempotency-Key
           in: header
@@ -52,8 +62,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AiExecuteResponse'
-        '403':
+        '400':
           $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ErrorResponse'
         '503':
@@ -62,6 +76,8 @@ paths:
     get:
       operationId: getCurrentAiPolicySnapshot
       summary: Get the published AI policy snapshot for the current tenant.
+      x-required-permissions:
+        - ai.policy.read
       responses:
         '200':
           description: Published snapshot.
@@ -69,12 +85,20 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AiPolicySnapshot'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '503':
           $ref: '#/components/responses/ErrorResponse'
   /v1/ai/audit-records:
     get:
       operationId: listAiAuditRecords
       summary: List AI audit records.
+      x-required-permissions:
+        - ai.audit.read
       parameters:
         - name: conversation_id
           in: query
@@ -97,15 +121,48 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/AiAuditRecord'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Single-tenant operator session token. Required claims are sub, tenant_id, actor_type, role, permissions, and session_id. Platform-admin flows must use explicit admin surfaces instead of these tenant-scoped endpoints.
   responses:
+    UnauthorizedError:
+      description: Identity is missing, expired, or cannot be verified before a trusted tenant context is created.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            code: gateway.identity_invalid
+            message: Bearer token is missing or invalid.
+            category: auth
+            error_source: gateway
+            retryable: false
+            correlation_id: corr-001
+    ForbiddenError:
+      description: Identity is valid, but tenant scope, permissions, or admin-surface rules reject the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            code: ai.permission_denied
+            message: The resolved actor cannot access this AI surface.
+            category: authorization
+            error_source: system
+            retryable: false
+            correlation_id: corr-001
     ErrorResponse:
-      description: Standard error envelope.
+      description: Standard error envelope used with real HTTP status codes.
       content:
         application/json:
           schema:
@@ -113,7 +170,7 @@ components:
   schemas:
     ErrorEnvelope:
       type: object
-      required: [code, message, category, retryable, correlation_id]
+      required: [code, message, category, error_source, retryable, correlation_id]
       properties:
         code:
           type: string
@@ -121,6 +178,9 @@ components:
           type: string
         category:
           type: string
+        error_source:
+          type: string
+          enum: [gateway, system]
         retryable:
           type: boolean
         correlation_id:
@@ -148,6 +208,7 @@ components:
           enum: [succeeded, failed, blocked]
     AiSuggestionRequest:
       type: object
+      additionalProperties: false
       required: [conversation_id, mode]
       properties:
         conversation_id:
@@ -175,19 +236,21 @@ components:
           type: string
     AiExecuteRequest:
       type: object
+      additionalProperties: false
       required: [conversation_id, mode]
       properties:
         conversation_id:
           type: string
         mode:
           type: string
+          enum: [SuggestOnly, Copilot, Autopilot, EscalationOnly]
         requested_tool:
           type: string
         requested_asset_id:
           type: string
     AiExecuteResponse:
       type: object
-      required: [audit_id, execution_status, fallback_reason]
+      required: [audit_id, execution_status, execution_mode, idempotency_key, precondition_status, fallback_reason]
       properties:
         audit_id:
           type: string
@@ -224,6 +287,7 @@ components:
       type: object
       required:
         - audit_id
+        - tenant_id
         - conversation_id
         - mode
         - policy_version
@@ -233,6 +297,8 @@ components:
         - fallback_reason
       properties:
         audit_id:
+          type: string
+        tenant_id:
           type: string
         conversation_id:
           type: string

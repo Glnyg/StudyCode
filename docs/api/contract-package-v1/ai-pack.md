@@ -23,6 +23,9 @@
 
 ## Contract Rules（合同规则）
 - `POST /v1/ai/decisions:execute` 必须带 `Idempotency-Key`。
+- 当前 tenant-scoped AI operator surface 只覆盖 suggestion、execute、policy snapshot read、audit read；publish / rollback 写接口不在这一轮 surface 内。
+- 需要结构化输入的 suggestion surface 固定使用 `POST /v1/ai/reply-suggestions`；当前包不定义 `GET + request body` 的 AI read surface。
+- AI operator error（AI 操作员错误）必须直接返回真实 HTTP status，不允许 outer `200 + inner error`。
 - tool execution result（工具执行结果）必须显式返回：
   - `execution_mode`
   - `idempotency_key`
@@ -40,16 +43,23 @@
   - `tool_calls`
   - `asset_choice`
   - `fallback_reason`
+- 未来任何 AI policy publish / rollback 写接口，都必须显式声明 `ai.policy.publish` 或 `tenant.config.write`，并遵守 `If-Match`、trusted `TenantContext` 和 audit metadata 规则。
 
 ## Negative Cases（负例）
 - policy load failure（策略加载失败）：
   - `503 ai.policy_load_failed`
+- valid token but missing `ai.decision.execute` / `ai.audit.read` / `ai.policy.read`（权限不足）：
+  - `403 ai.permission_denied`
+- `GET /v1/ai/policies/current` 或 `GET /v1/ai/audit-records` 携带 request body：
+  - `400 gateway.request_invalid`
 - tool blocked by policy（工具被策略阻止）：
   - `403 ai.tool_execution_forbidden`
 - video input in assist path（辅助路径收到视频输入）：
   - `409 ai.video_requires_human_handoff`
 - asset selected but not reviewed / effective（选中的素材未审核或未生效）：
   - `409 ai.asset_selection_invalid`
+- `platform_admin` 直接走 tenant-scoped AI operator surface：
+  - `403 gateway.admin_surface_required`
 
 ## Compatibility Notes（兼容性说明）
 - `fallback_reason` 可以新增 enum value（枚举值），但旧 consumer 必须按“unknown fallback（未知回退）”处理，不能把未知值默认为 success。
