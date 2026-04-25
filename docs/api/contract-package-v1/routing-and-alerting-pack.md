@@ -38,16 +38,25 @@
 ## Contract Rules（合同规则）
 - assignment / transfer API 必须带 `Idempotency-Key`。
 - versioned config writes（带版本配置写入）必须带 `If-Match`。
+- 所有 routing operator surface 都必须显式声明所需 `x-required-permissions`。
+- routing operator error（路由操作员错误）必须直接返回真实 HTTP status，不允许 outer `200 + inner error`。
+- 所有 `GET` routing surface 都不接受 request body。
 - response-timeout 和 urgent intervention 的 notification delivery 都必须按 `source_type + source_id + endpoint_id + template_version` 去重。
 - `routing-service` 可以消费 `MessageAppended`、`ConversationClosed`，但不能改写 `conversation-service` 拥有的消息真相。
 
 ## Negative Cases（负例）
+- valid token but missing `conversation.assign` / `conversation.transfer` / `routing.rule.write` / `routing.alert.manage`（权限不足）：
+  - `403 routing.permission_denied`
+- `GET /v1/queues`、`GET /v1/urgent-interventions` 等带 request body：
+  - `400 gateway.request_invalid`
 - assigning a conversation already assigned to another agent without transfer（未转接直接抢占已分配会话）：
   - `409 routing.assignment_conflict`
 - updating a rule with stale `If-Match`（用过期版本更新规则）：
   - `409 conflict.version_mismatch`
 - acknowledging an intervention from another tenant（确认其他租户的 intervention）：
   - `404 routing.intervention_not_found`
+- `platform_admin` 直接走 tenant-scoped routing API：
+  - `403 gateway.admin_surface_required`
 - no active human assignment for response-timeout lookup（查询时没有活跃人工分配）：
   - 返回空列表或 no-op，不生成 alert
 

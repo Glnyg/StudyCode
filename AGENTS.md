@@ -72,7 +72,28 @@
 - 相关 tests、lint、typecheck、build checks 要么已经运行，要么明确说明为什么没跑。
 - 行为变化需要在 tests、docs 或 examples 里反映出来。
 - 不能为 tenant、auth、routing、billing-sensitive logic 引入 silent fallback（静默兜底）。
-- 最终总结必须使用：`Cause / Changes / Prevention / Verification`。
+- 对 implementation-affecting tasks（影响实现的任务），最终总结必须使用：`Cause / Changes / Prevention / Verification`。
+- 以下场景默认属于 implementation-affecting tasks：
+  - 代码修改
+  - 正式文档修改
+  - API / event / schema / contract 修改
+  - bug fix
+  - code review feedback 落地
+  - incident / regression 分析
+  - 任何会被当成交付记录或审计记录的任务
+- 以下场景可以不强制使用这 4 段：
+  - 纯问答
+  - 纯计划
+  - brainstorming（头脑风暴）
+  - 单命令查询结果
+  - 纯澄清、纯确认、纯阻塞说明
+  - 没有 repo 变更、也没有形成交付结论的对话
+- 这 4 段的最小含义固定为：
+  - `Cause`：根因、触发条件，或为什么要做这次修改；如果根因未完全确认，要明确写未完全确认
+  - `Changes`：实际改了什么；优先写行为变化和 contract 变化，不要只报文件名
+  - `Prevention`：如何降低复发概率；如果这次没有新增预防措施，要明确写没有新增 prevention
+  - `Verification`：实际跑了什么 checks（校验）、结果是什么；没跑就明确写未运行和原因，不能把推测写成验证
+- 不要为了凑格式写空话；如果任务很小，每段一句话即可。
 
 ## Task Shaping（任务描述方式）
 - 写 request 时尽量像 GitHub issue（议题）一样清晰。

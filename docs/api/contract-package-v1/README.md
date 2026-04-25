@@ -13,10 +13,12 @@
   - `ai-service`
   - 最小必要的 `api-gateway` / `realtime-gateway` 边界
 - 不包含：
-  - 完整 `tenant/auth freeze package`
+  - 在本目录内单独维护完整 `tenant/auth freeze package`
   - 详细 PostgreSQL 表结构
   - 上游 webhook / 业务系统集成的全量冻结
   - 没有明确设计依据的新 `gRPC` 接口
+
+`tenant/auth` 的正式冻结文档位于 `docs/domain/tenant-resolution-and-authorization-v1.md`；本目录只同步它对 `OpenAPI`、`JSON Schema`、error semantics（错误语义）和 negative cases（负例）的影响。
 
 ## Package Layout（包结构）
 - [00-gap-audit-and-workstreams.md](./00-gap-audit-and-workstreams.md)
@@ -40,8 +42,18 @@
 - `schemas/`
   - shared types（共享类型）、error envelope、event envelope 与事件目录 `JSON Schema`
 
+## Related Freeze Package（相关冻结包）
+- tenant resolution / authorization（租户解析 / 授权）：
+  - [../../domain/tenant-resolution-and-authorization-v1.md](../../domain/tenant-resolution-and-authorization-v1.md)
+- 当前 contract package 的所有 tenant-scoped operator surface 都必须与这份冻结包保持一致：
+  - single-tenant operator token
+  - `x-required-permissions`
+  - `401/403/404` 语义
+  - cross-tenant negative cases
+
 ## Contract Outputs（合同产物）
 - HTTP 合同默认使用 `OpenAPI 3.1`。
+- operator/public HTTP errors（操作员 / 公共 HTTP 错误）必须使用真实 non-`2xx` HTTP status + error envelope，不定义 outer `200 + inner error` 包装。
 - 事件合同使用 `JSON Schema Draft 2020-12`，每个 schema 文件都应带 example。
 - 当前包不新增 `.proto`：
   - 正式设计虽然已经允许“在有依据时使用 `gRPC`”，但还没有冻结到“哪个 owner 暴露哪条 RPC、谁消费、怎样处理幂等和恢复”的粒度。
@@ -74,6 +86,6 @@
 
 ## Completion Criteria（完成标准）
 - 所有已在正式设计文档中出现的 public APIs、关键事件、shared types，都必须在这套包里有明确 owner、consumer、schema 和 example。
-- 多租户、幂等、恢复、兼容性规则不再依赖聊天记忆；后续实现者不需要自行决定 header、error、version、`Idempotency-Key`、`sequence` 或 event envelope 的形状。
+- 多租户、幂等、恢复、兼容性规则不再依赖聊天记忆；后续实现者不需要自行决定 header、error、outer `200` / inner code、version、`Idempotency-Key`、`sequence` 或 event envelope 的形状。
 - `docs/api/public-contracts-and-events.md` 只保留入口索引职责，不再承担全部合同细节。
 - 只要对外行为或事件兼容性规则发生变化，就先改这里，再改实现。

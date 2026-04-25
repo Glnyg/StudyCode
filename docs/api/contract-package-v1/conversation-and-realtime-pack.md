@@ -38,20 +38,29 @@
 
 ## Contract Rules（合同规则）
 - `POST /v1/conversations/{conversation_id}/messages` 必须带 `Idempotency-Key`。
+- 所有 operator-facing conversation / realtime surface 都从 single-tenant bearer token 解析 trusted `TenantContext`，不接受客户端自报 `tenant_id`。
+- operator/public conversation / realtime error（错误）必须直接返回真实 HTTP status，不允许 outer `200 + inner error`。
+- `GET` conversation / realtime surface 不接受 request body。
 - message replay（消息重放）必须使用 `message_id + sequence`。
 - `sequence` 是 per-conversation（按会话）的单调递增 committed sequence。
 - API 可以按时间倒序返回；realtime replay 必须按 `sequence asc` 返回。
 - 如果 `conversation_id` 存在但不属于当前 tenant，返回 `404 conversation.not_found`，不泄露 cross-tenant existence（跨租户存在性）。
 
 ## Negative Cases（负例）
-- missing tenant context（缺少租户上下文）：
-  - `401 tenant.context_missing` 或 `403 tenant.forbidden_cross_tenant`
+- missing / invalid operator token（缺少 / 无效操作员令牌）：
+  - `401 gateway.identity_invalid`
+- valid token but missing `conversation.read` / `conversation.reply`（令牌有效但权限不足）：
+  - `403 conversation.permission_denied`
+- `GET /v1/conversations` 或 realtime bootstrap 携带 request body（带请求体）：
+  - `400 gateway.request_invalid`
 - duplicate outbound send with same key and same payload（相同 key + 相同载荷重复发送）：
   - 返回同一个 intent 结果
 - duplicate outbound send with same key but different payload（相同 key + 不同载荷重复发送）：
   - `409 conflict.idempotency_payload_mismatch`
 - replay from a future `last_seen_sequence`（从未来序号重放）：
   - `409 conversation.invalid_replay_position`
+- `platform_admin` token 直接调用 tenant-scoped realtime bootstrap 或 conversation API：
+  - `403 gateway.admin_surface_required`
 
 ## Compatibility Notes（兼容性说明）
 - `MessageAppended` 可以新增 optional structured business facts（可选结构化业务事实），但不能改变 `message_id`、`sequence`、`occurred_at` 的语义。

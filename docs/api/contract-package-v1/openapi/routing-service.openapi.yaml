@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Routing Service Contract V1
   version: 1.0.0
-  description: Queue, assignment, transfer, presence, urgent intervention, and response-timeout APIs.
+  description: Queue, assignment, transfer, presence, urgent intervention, and response-timeout APIs. All tenant resolution comes from a single-tenant bearer token session; clients must not send tenant_id in headers, query, or body. Errors return real non-2xx HTTP status codes plus a JSON error envelope; these surfaces do not use outer 200 wrappers, and GET operations do not accept request bodies.
 servers:
   - url: https://api.example.internal
 security:
@@ -15,6 +15,8 @@ paths:
       tags: [routing]
       operationId: listQueues
       summary: List tenant-scoped queues.
+      x-required-permissions:
+        - routing.queue.read
       responses:
         '200':
           description: Queue page.
@@ -28,11 +30,19 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/QueueItem'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
   /v1/conversations/{conversation_id}:assign:
     post:
       tags: [routing]
       operationId: assignConversation
       summary: Assign a conversation to a human agent.
+      x-required-permissions:
+        - conversation.assign
       parameters:
         - $ref: '#/components/parameters/ConversationId'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -42,6 +52,7 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required: [agent_id, queue_id]
               properties:
                 agent_id:
@@ -55,6 +66,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Assignment'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ErrorResponse'
   /v1/conversations/{conversation_id}:transfer:
@@ -62,6 +79,8 @@ paths:
       tags: [routing]
       operationId: transferConversation
       summary: Transfer a conversation to another queue or agent.
+      x-required-permissions:
+        - conversation.transfer
       parameters:
         - $ref: '#/components/parameters/ConversationId'
         - $ref: '#/components/parameters/IdempotencyKey'
@@ -71,6 +90,7 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required: [to_queue_id]
               properties:
                 to_queue_id:
@@ -86,6 +106,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Transfer'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ErrorResponse'
   /v1/agents/{agent_id}/presence:
@@ -93,6 +119,8 @@ paths:
       tags: [routing]
       operationId: updateAgentPresence
       summary: Update agent presence for the current tenant.
+      x-required-permissions:
+        - routing.presence.write
       parameters:
         - name: agent_id
           in: path
@@ -105,6 +133,7 @@ paths:
           application/json:
             schema:
               type: object
+              additionalProperties: false
               required: [status]
               properties:
                 status:
@@ -117,11 +146,19 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AgentPresence'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
   /v1/intervention-rules:
     get:
       tags: [routing]
       operationId: listInterventionRules
       summary: List urgent intervention rules.
+      x-required-permissions:
+        - routing.rule.read
       responses:
         '200':
           description: Intervention rule page.
@@ -135,11 +172,19 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/InterventionRule'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
   /v1/intervention-rules/{rule_id}:
     put:
       tags: [routing]
       operationId: upsertInterventionRule
       summary: Upsert a versioned intervention rule.
+      x-required-permissions:
+        - routing.rule.write
       parameters:
         - name: rule_id
           in: path
@@ -160,6 +205,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InterventionRule'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ErrorResponse'
   /v1/response-timeout-policies:
@@ -167,6 +218,8 @@ paths:
       tags: [routing]
       operationId: listResponseTimeoutPolicies
       summary: List response-timeout policies.
+      x-required-permissions:
+        - routing.rule.read
       responses:
         '200':
           description: Policy page.
@@ -180,11 +233,19 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ResponseTimeoutPolicy'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
   /v1/response-timeout-policies/{policy_id}:
     put:
       tags: [routing]
       operationId: upsertResponseTimeoutPolicy
       summary: Upsert a versioned response-timeout policy.
+      x-required-permissions:
+        - routing.rule.write
       parameters:
         - name: policy_id
           in: path
@@ -205,6 +266,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResponseTimeoutPolicy'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '409':
           $ref: '#/components/responses/ErrorResponse'
   /v1/urgent-interventions:
@@ -212,6 +279,8 @@ paths:
       tags: [routing]
       operationId: listUrgentInterventions
       summary: List urgent interventions.
+      x-required-permissions:
+        - routing.alert.read
       responses:
         '200':
           description: Intervention page.
@@ -225,11 +294,19 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/UrgentIntervention'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
   /v1/urgent-interventions/{intervention_id}:acknowledge:
     post:
       tags: [routing]
       operationId: acknowledgeIntervention
       summary: Acknowledge an urgent intervention.
+      x-required-permissions:
+        - routing.alert.manage
       parameters:
         - name: intervention_id
           in: path
@@ -243,6 +320,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UrgentIntervention'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/ErrorResponse'
   /v1/urgent-interventions/{intervention_id}:resolve:
@@ -250,6 +333,8 @@ paths:
       tags: [routing]
       operationId: resolveIntervention
       summary: Resolve an urgent intervention.
+      x-required-permissions:
+        - routing.alert.manage
       parameters:
         - name: intervention_id
           in: path
@@ -263,11 +348,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UrgentIntervention'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/ErrorResponse'
   /v1/response-timeout-alerts:
     get:
       tags: [routing]
       operationId: listResponseTimeoutAlerts
       summary: List response-timeout alerts.
+      x-required-permissions:
+        - routing.alert.read
       responses:
         '200':
           description: Alert page.
@@ -281,12 +376,19 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/ResponseTimeoutAlert'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Single-tenant operator session token. Required claims are sub, tenant_id, actor_type, role, permissions, and session_id. Platform-admin flows must use explicit admin surfaces instead of these tenant-scoped endpoints.
   parameters:
     ConversationId:
       name: conversation_id
@@ -307,8 +409,34 @@ components:
       schema:
         type: string
   responses:
+    UnauthorizedError:
+      description: Identity is missing, expired, or cannot be verified before a trusted tenant context is created.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            code: gateway.identity_invalid
+            message: Bearer token is missing or invalid.
+            category: auth
+            error_source: gateway
+            retryable: false
+            correlation_id: corr-001
+    ForbiddenError:
+      description: Identity is valid, but tenant scope, permissions, or admin-surface rules reject the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            code: routing.permission_denied
+            message: The resolved actor cannot access this routing surface.
+            category: authorization
+            error_source: system
+            retryable: false
+            correlation_id: corr-001
     ErrorResponse:
-      description: Standard error envelope.
+      description: Standard error envelope used with real HTTP status codes.
       content:
         application/json:
           schema:
@@ -316,7 +444,7 @@ components:
   schemas:
     ErrorEnvelope:
       type: object
-      required: [code, message, category, retryable, correlation_id]
+      required: [code, message, category, error_source, retryable, correlation_id]
       properties:
         code:
           type: string
@@ -324,6 +452,9 @@ components:
           type: string
         category:
           type: string
+        error_source:
+          type: string
+          enum: [gateway, system]
         retryable:
           type: boolean
         correlation_id:

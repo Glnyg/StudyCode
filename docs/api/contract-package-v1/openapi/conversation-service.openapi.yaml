@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Conversation Service Contract V1
   version: 1.0.0
-  description: Operator-facing conversation APIs frozen by Contract Package V1.
+  description: Operator-facing conversation APIs frozen by Contract Package V1. All tenant resolution comes from a single-tenant bearer token session; clients must not send tenant_id in headers, query, or body. Errors return real non-2xx HTTP status codes plus a JSON error envelope; these surfaces do not use outer 200 wrappers, and GET operations do not accept request bodies.
 servers:
   - url: https://api.example.internal
 security:
@@ -15,6 +15,8 @@ paths:
       tags: [conversations]
       operationId: listConversations
       summary: List conversations for the current tenant context.
+      x-required-permissions:
+        - conversation.read
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/TraceParent'
@@ -50,15 +52,19 @@ paths:
                     last_message_sequence: 91
                     updated_at: '2026-04-24T09:10:11Z'
                 next_page_token: page-002
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
         '401':
-          $ref: '#/components/responses/ErrorResponse'
+          $ref: '#/components/responses/UnauthorizedError'
         '403':
-          $ref: '#/components/responses/ErrorResponse'
+          $ref: '#/components/responses/ForbiddenError'
   /v1/conversations/{conversation_id}/messages:
     get:
       tags: [conversations]
       operationId: replayConversationMessages
       summary: Replay committed messages for a conversation.
+      x-required-permissions:
+        - conversation.read
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/TraceParent'
@@ -87,6 +93,12 @@ paths:
                     text: 请问这个套餐怎么续费
                     occurred_at: '2026-04-24T09:10:11Z'
                 next_page_token: null
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/ErrorResponse'
         '409':
@@ -95,6 +107,8 @@ paths:
       tags: [conversations]
       operationId: sendAgentMessage
       summary: Create a durable outbound agent intent.
+      x-required-permissions:
+        - conversation.reply
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/TraceParent'
@@ -121,6 +135,12 @@ paths:
                 conversation_id: conv-1001
                 status: accepted
                 idempotency_key: idem-001
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/ErrorResponse'
         '409':
@@ -130,6 +150,8 @@ paths:
       tags: [conversations]
       operationId: evaluateConversation
       summary: Submit a tenant-scoped conversation evaluation.
+      x-required-permissions:
+        - conversation.evaluate
       parameters:
         - $ref: '#/components/parameters/CorrelationId'
         - $ref: '#/components/parameters/TraceParent'
@@ -151,6 +173,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConversationEvaluationResponse'
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '404':
           $ref: '#/components/responses/ErrorResponse'
 components:
@@ -159,6 +187,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Single-tenant operator session token. Required claims are sub, tenant_id, actor_type, role, permissions, and session_id. Platform-admin flows must use explicit admin surfaces instead of these tenant-scoped endpoints.
   parameters:
     CorrelationId:
       name: X-Correlation-Id
@@ -198,8 +227,34 @@ components:
       schema:
         type: string
   responses:
+    UnauthorizedError:
+      description: Identity is missing, expired, or cannot be verified before a trusted tenant context is created.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            code: gateway.identity_invalid
+            message: Bearer token is missing or invalid.
+            category: auth
+            error_source: gateway
+            retryable: false
+            correlation_id: corr-001
+    ForbiddenError:
+      description: Identity is valid, but tenant scope, permissions, or admin-surface rules reject the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            code: conversation.permission_denied
+            message: The resolved actor cannot access this conversation surface.
+            category: authorization
+            error_source: system
+            retryable: false
+            correlation_id: corr-001
     ErrorResponse:
-      description: Standard error envelope.
+      description: Standard error envelope used with real HTTP status codes.
       content:
         application/json:
           schema:
@@ -207,7 +262,7 @@ components:
   schemas:
     ErrorEnvelope:
       type: object
-      required: [code, message, category, retryable, correlation_id]
+      required: [code, message, category, error_source, retryable, correlation_id]
       properties:
         code:
           type: string
@@ -215,6 +270,9 @@ components:
           type: string
         category:
           type: string
+        error_source:
+          type: string
+          enum: [gateway, system]
         retryable:
           type: boolean
         correlation_id:
@@ -298,6 +356,7 @@ components:
           type: [string, 'null']
     SendAgentMessageRequest:
       type: object
+      additionalProperties: false
       required: [message_type]
       properties:
         message_type:
@@ -326,6 +385,7 @@ components:
           type: string
     ConversationEvaluationRequest:
       type: object
+      additionalProperties: false
       required: [score]
       properties:
         score:

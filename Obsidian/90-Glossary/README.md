@@ -10,11 +10,13 @@
 
 ## 建议先读
 1. [[多租户]]
-2. [[租户隔离]]
-3. [[Outbox 模式]]
-4. [[恢复语义]]
-5. [[RAG]]
-6. [[OpenSearch]]
+2. [[Tenant Resolution]]
+3. [[TenantContext]]
+4. [[HTTP 状态码语义]]
+5. [[Error Source]]
+6. [[租户隔离]]
+7. [[Outbox 模式]]
+8. [[恢复语义]]
 
 ## 对应正式文档
 - `docs/architecture/system-overview.md`

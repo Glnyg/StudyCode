@@ -22,6 +22,9 @@
 ## Contract Rules（合同规则）
 - 资产上传必须带 `Idempotency-Key`。
 - review transition（审核状态迁移）必须带 `If-Match`。
+- upload / review / preview / list 都从 trusted `TenantContext` 做租户隔离，不接受客户端自报租户。
+- media operator error（媒体操作员错误）必须直接返回真实 HTTP status，不允许 outer `200 + inner error`。
+- `GET /v1/assets` 不接受 request body。
 - preview URL 只返回短期签名结果，不返回底层对象存储 secret。
 - `AssetItem` 必须保留以下字段：
   - `tenant_id`
@@ -34,6 +37,10 @@
   - `version`
 
 ## Negative Cases（负例）
+- valid token but missing `media.asset.write` / `media.review`（令牌有效但素材权限不足）：
+  - `403 media.permission_denied`
+- `GET /v1/assets` 携带 request body：
+  - `400 gateway.request_invalid`
 - preview another tenant asset（预览其他租户素材）：
   - `404 media.asset_not_found`
 - selecting an unreviewed asset（选择未审核素材）：

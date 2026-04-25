@@ -22,13 +22,14 @@
 - `architecture/implementation-readiness-and-design-freeze.md`：哪些内容已经 freeze（冻结）、哪些内容仍然阻塞 coding（编码）、推荐交付顺序是什么。
 - `architecture/implementation-style-pragmatic-ddd-workflow-first.md`：官方实现风格，说明 DDD/CQRS 在哪里适用，哪里应该 workflow-first。
 - `domain/multi-tenant-and-domain-model.md`：tenant model、identity、conversation lifecycle、routing、media、asset boundaries。
+- `domain/tenant-resolution-and-authorization-v1.md`：trusted tenant resolution、single-tenant operator token、RBAC matrix、`platform_admin` 边界，以及 operator/public HTTP 的真实状态码与错误 / 审计语义。
 - `domain/urgent-intervention-and-management-alerting.md`：高风险关键词告警（urgent intervention）、管理通知（management notification）和设备补充信息（device enrichment）规则。
 - `search/chat-history-search.md`：chat history search（聊天记录搜索）设计和 OpenSearch read-side 规则。
 - `ai/ai-service-design.md`：AI service 结构、policy model、tool execution、multimodal handling。
 - `ai/knowledge-rag-design.md`：knowledge base 与 RAG 的数据流、发布和评估。
 - `data/storage-and-retention.md`：PostgreSQL、OpenSearch、Redis、RabbitMQ、object storage 的职责划分。
 - `reliability/power-loss-and-recovery.md`：掉电恢复（power loss and recovery）、不丢消息保证（no-loss guarantees）、replay rules 和单节点故障行为。
-- `api/public-contracts-and-events.md`：API / event contract 入口索引与变更流程。
+- `api/public-contracts-and-events.md`：API / event contract 入口索引、变更流程，以及 gateway/system 错误区分规则。
 - `api/contract-package-v1/README.md`：面向实现的 `OpenAPI` / `JSON Schema` 合同冻结包（contract package）。
 - `platform/k8s-baseline.md`：Kubernetes 基线、observability（可观测性）和交付规则。
 - `testing/verification-baseline.md`：验收检查、故障演练（failure drills）和性能目标。

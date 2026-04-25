@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Search Service Contract V1
   version: 1.0.0
-  description: Tenant-safe chat history search contracts.
+  description: Tenant-safe chat history search contracts. Tenant scope is always resolved from a single-tenant bearer token session; clients must not send tenant_id in headers, query, or body. Errors return real non-2xx HTTP status codes plus a JSON error envelope; these surfaces do not use outer 200 wrappers, and GET operations do not accept request bodies.
 servers:
   - url: https://api.example.internal
 security:
@@ -12,6 +12,8 @@ paths:
     post:
       operationId: searchMessages
       summary: Search chat history for the current tenant.
+      x-required-permissions:
+        - search.read
       requestBody:
         required: true
         content:
@@ -32,6 +34,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SearchMessagesResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
         '400':
           $ref: '#/components/responses/ErrorResponse'
         '503':
@@ -40,6 +46,8 @@ paths:
     get:
       operationId: autocompleteSearchHints
       summary: Autocomplete search hints for a tenant-scoped prefix.
+      x-required-permissions:
+        - search.read
       parameters:
         - name: q
           in: query
@@ -66,10 +74,18 @@ paths:
                     type: array
                     items:
                       type: string
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
   /v1/search/health:
     get:
       operationId: getSearchHealth
       summary: Health surface for the tenant-visible search projection.
+      x-required-permissions:
+        - search.read
       responses:
         '200':
           description: Health snapshot.
@@ -87,15 +103,48 @@ paths:
                   last_successful_event_at:
                     type: string
                     format: date-time
+        '400':
+          $ref: '#/components/responses/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Single-tenant operator session token. Required claims are sub, tenant_id, actor_type, role, permissions, and session_id. Platform-admin flows must use explicit admin surfaces instead of these tenant-scoped endpoints.
   responses:
+    UnauthorizedError:
+      description: Identity is missing, expired, or cannot be verified before a trusted tenant context is created.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            code: gateway.identity_invalid
+            message: Bearer token is missing or invalid.
+            category: auth
+            error_source: gateway
+            retryable: false
+            correlation_id: corr-001
+    ForbiddenError:
+      description: Identity is valid, but tenant scope, permissions, or admin-surface rules reject the request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+          example:
+            code: search.permission_denied
+            message: The resolved actor cannot access this search surface.
+            category: authorization
+            error_source: system
+            retryable: false
+            correlation_id: corr-001
     ErrorResponse:
-      description: Standard error envelope.
+      description: Standard error envelope used with real HTTP status codes.
       content:
         application/json:
           schema:
@@ -103,7 +152,7 @@ components:
   schemas:
     ErrorEnvelope:
       type: object
-      required: [code, message, category, retryable, correlation_id]
+      required: [code, message, category, error_source, retryable, correlation_id]
       properties:
         code:
           type: string
@@ -111,12 +160,16 @@ components:
           type: string
         category:
           type: string
+        error_source:
+          type: string
+          enum: [gateway, system]
         retryable:
           type: boolean
         correlation_id:
           type: string
     SearchMessagesRequest:
       type: object
+      additionalProperties: false
       properties:
         q:
           type: string

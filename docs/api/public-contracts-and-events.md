@@ -7,6 +7,8 @@
 ## Authoritative Contract Package（权威合同包）
 - 主入口：
   - [contract-package-v1/README.md](./contract-package-v1/README.md)
+- 相关 tenant / authorization freeze：
+  - [../domain/tenant-resolution-and-authorization-v1.md](../domain/tenant-resolution-and-authorization-v1.md)
 - 横切规则（cross-cutting rules）：
   - [contract-package-v1/shared-contract-core.md](./contract-package-v1/shared-contract-core.md)
 - 缺口审计（gap audit）与优先级：
@@ -63,6 +65,13 @@
 
 ## Shared Rules（共享规则）
 - trusted `tenant_id` 只能来自 token、verified channel binding（已验证通道绑定）或 trusted internal event envelope（可信内部事件信封）。
+- operator bearer token 采用单租户 session model（会话模型），claims 固定为 `sub`, `tenant_id`, `actor_type`, `role`, `permissions`, `session_id`。
+- `platform_admin` 不能直接复用 tenant-scoped operator APIs；必须走显式 admin surface。
+- error envelope 的 `code` 与 `error_source` 必须能区分 gateway problem（网关问题）和 system problem（系统问题）：
+  - `gateway.*` 只用于 edge / gateway failure
+  - service / domain / dependency / internal failure 统一标记 `error_source = system`
+- operator/public API 出错时必须直接返回真实 HTTP status，不能用 outer `200` 包装 auth、tenant、permission、validation、gateway 或 system failure。
+- `GET` request 不接受 body；如果客户端发送 body，必须返回 `400` request-shape violation（请求形状违规）。
 - side-effecting `POST`（有副作用的 POST）必须显式声明是否要求 `Idempotency-Key`。
 - versioned config writes（版本化配置写入）使用 `If-Match`。
 - search 分页使用 `search_after`。
@@ -72,6 +81,7 @@
 
 ## Change Workflow（变更流程）
 1. 先更新 `contract-package-v1/` 下的权威合同。
-2. 如果涉及 breaking change，同步更新 `docs/adr/0010-freeze-contract-package-v1-as-implementation-ready-baseline.md` 或新增 ADR。
-3. 再同步 `Obsidian/05-API/公共接口与事件目录.md`。
-4. 最后才允许实现代码跟进。
+2. 如果变更涉及 trusted tenant resolution、token claims、`TenantContext`、permission strings、operator/public response strategy 或 `platform_admin` 边界，同步更新 `docs/domain/tenant-resolution-and-authorization-v1.md`。
+3. 如果涉及 breaking change，同步更新 `docs/adr/0010-freeze-contract-package-v1-as-implementation-ready-baseline.md` 或新增 ADR。
+4. 再同步 `Obsidian/05-API/公共接口与事件目录.md`。
+5. 最后才允许实现代码跟进。
